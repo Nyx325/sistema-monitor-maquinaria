@@ -1,10 +1,12 @@
-import { Search } from "../model/search";
+import { Search } from "../model/Search";
 import { IRepository } from "../repository/IRepository";
 
-export interface IController<M, NM> {
+export abstract class IController<M, NM> {
   readonly repository: IRepository<M, NM>;
-  lastSelected: M | undefined;
-  lastSearch: Search<M> | undefined;
+
+  constructor(repository: IRepository<M, NM>) {
+    this.repository = repository;
+  }
 
   /**
    * Valida si la entidad es válida de acuerdo a nuestra
@@ -13,7 +15,7 @@ export interface IController<M, NM> {
    * @throws {Error} - lanza un error si el modelo no
    * es válido.
    */
-  isModelValid(model: M): void;
+  abstract isModelValid(model: M): void;
 
   /**
    * Valida si la entidad es válida de acuerdo a nuestra
@@ -22,35 +24,40 @@ export interface IController<M, NM> {
    * @throws {Error} - lanza un error si el modelo no
    * es válido.
    */
-  isNewModelValid(model: NM): void;
+  abstract isNewModelValid(model: NM): void;
 
   /**
    * Agrega un nuevo modelo al repositorio.
    * @param model - El modelo a agregar.
+   * @throws {Error} - lanza un error si el modelo no
+   * es válido.
    * @returns {Promise<void>} - Promesa que se resuelve cuando la operación de adición se completa.
    */
-  add(model: NM): Promise<void>;
-
-  /**
-   * Realiza una eliminación lógica del modelo, estableciendo su estado como inactivo.
-   * @param model - El modelo a eliminar lógicamente.
-   * @returns {Promise<void>} - Promesa que se resuelve cuando la operación de eliminación lógica se completa.
-   */
-  logicalDeletion(model: M): Promise<void>;
+  async add(model: NM): Promise<void> {
+    this.isNewModelValid(model);
+    await this.repository.add(model);
+  }
 
   /**
    * Realiza una eliminación permanente del modelo.
    * @param model - El modelo a eliminar permanentemente.
    * @returns {Promise<void>} - Promesa que se resuelve cuando la operación de eliminación permanente se completa.
    */
-  permanentlyDeletion(model: M): Promise<void>;
+  async permanentlyDeletion(model: M): Promise<void> {
+    await this.repository.permanentlyDeletion(model);
+  }
 
   /**
    * Actualiza un modelo existente en el repositorio.
    * @param model - El modelo con los datos actualizados.
+   * @throws {Error} - lanza un error si el modelo no
+   * es válido.
    * @returns {Promise<void>} - Promesa que se resuelve cuando la operación de actualización se completa.
    */
-  update(model: M): Promise<void>;
+  async update(model: M): Promise<void> {
+    this.isModelValid(model);
+    await this.repository.update(model);
+  }
 
   /**
    * Recupera modelos basados en criterios de búsqueda y paginación.
@@ -58,5 +65,10 @@ export interface IController<M, NM> {
    * @param pageNumber - El número de página para la paginación.
    * @returns {Promise<Search<M>>} - Promesa que se resuelve con los resultados de búsqueda.
    */
-  getByCriteria(criteria: Partial<M>, pageNumber: number): Promise<Search<M>>;
+  async getByCriteria(
+    criteria: Partial<M>,
+    pageNumber: number,
+  ): Promise<Search<M>> {
+    return await this.repository.getBy(criteria, pageNumber);
+  }
 }

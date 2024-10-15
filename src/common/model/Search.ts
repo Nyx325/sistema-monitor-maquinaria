@@ -38,5 +38,5 @@ export interface Search<M> {
    * encontrados o `undefined` si no se encontraron resultados. Permite a los usuarios ver
    * los resultados de la búsqueda efectuada.
    */
-  result: M[] | undefined;
+  result: M[];
 }

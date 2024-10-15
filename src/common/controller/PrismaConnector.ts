@@ -1,9 +1,18 @@
+import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { IConnector } from "./IConnector";
 
 export class PrismaConnector implements IConnector<PrismaClient> {
-  private pool: PrismaClient[] = []; // Pool de conexiones
-  private maxPoolSize: number = 1; // Máximo número de conexiones en el pool
+  private pool: PrismaClient[]; // Pool de conexiones
+  private maxPoolSize: number; // Máximo número de conexiones en el pool
+
+  constructor() {
+    dotenv.config(); // Carga las variables de entorno desde el archivo .env
+
+    this.pool = [];
+    const poolSize = Number(process.env.POOL_SIZE);
+    this.maxPoolSize = isNaN(poolSize) ? 5 : poolSize;
+  }
 
   /**
    * Obtiene una conexión de PrismaClient del pool. Si no hay conexiones disponibles, crea una nueva si no se ha alcanzado el límite.

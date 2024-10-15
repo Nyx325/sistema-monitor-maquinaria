@@ -18,13 +18,6 @@ export interface IRepository<M, NM> {
   add(model: NM): Promise<void>;
 
   /**
-   * Realiza una eliminación lógica del modelo, estableciendo su estado como inactivo.
-   * @param model - El modelo a eliminar lógicamente.
-   * @returns {Promise<void>} - Promesa que se resuelve cuando la operación de eliminación lógica se completa.
-   */
-  logicalDeletion(model: M): Promise<void>;
-
-  /**
    * Realiza una eliminación permanente del modelo.
    * @param model - El modelo a eliminar permanentemente.
    * @returns {Promise<void>} - Promesa que se resuelve cuando la operación de eliminación permanente se completa.
@@ -44,5 +37,5 @@ export interface IRepository<M, NM> {
    * @param pageNumber - El número de página para la paginación.
    * @returns {Promise<Search<M>>} - Promesa que se resuelve con los resultados de búsqueda.
    */
-  getByCriteria(criteria: Partial<M>, pageNumber: number): Promise<Search<M>>;
+  getBy(criteria: Partial<M>, pageNumber: number): Promise<Search<M>>;
 }
