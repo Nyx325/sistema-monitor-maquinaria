@@ -86,7 +86,10 @@ export class PrismaEquipementRepo implements EquipementRepository {
             equipement_id: criteria.equipement_id
               ? { equals: criteria.equipement_id }
               : undefined,
+            active: criteria.active ? { equals: criteria.active } : undefined,
           },
+          skip: (pageNumber - 1) * pageSize, // Skip previous pages
+          take: pageSize, // Take only the results for the current page
         }),
       ]);
 

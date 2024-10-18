@@ -129,6 +129,7 @@ export const getEquipement = async (
       oemName,
       model,
       equipementId,
+      active,
       pageNumber = "1", // Si no se envía pageNumber, por defecto es "1"
     } = req.query;
 
@@ -138,7 +139,10 @@ export const getEquipement = async (
       ...(oemName && { oem_name: String(oemName) }),
       ...(model && { model: String(model) }),
       ...(equipementId && { equipement_id: String(equipementId) }),
+      ...(typeof active !== "undefined" && { active: active !== "false" }),
     };
+
+    console.log(criteria);
 
     // Validar si el número de página es un número válido
     const pageNum = parseInt(pageNumber as string, 10); // Convertir pageNumber a entero

@@ -11,21 +11,41 @@ generator client {
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
+  referentialIntegrity = "foreignKeys"
 }
 
 model Equipement {
   serial_number String  @id @db.VarChar(25)
+  active        Boolean @default(true) 
   oem_name      String  @db.Text
   model         String  @db.Text
   equipement_id String
+
+
+  snapshots     ApiSnapshot[]
 }
 
 model ApiSnapshot {
-  snapshot_id          Int      @id @default(autoincrement())
+  snapshot_id          Int          @id @default(autoincrement())
   snapshot_total_pages Int
-  snapshot_version     String   @db.Text
+  snapshot_version     String       @db.Text
   snapshot_datetime    DateTime
-  serial_number        String?  @db.VarChar(25) // Clave foránea hacia equipement.serial_number
+  active               Boolean      @default(true)  
+  serial_number        String?      @db.VarChar(25) // Clave foránea hacia equipement.serial_number
+  equipement           Equipement?  @relation(fields: [serial_number], references: [serial_number])
+
+  locations            Location[]
+  cohs                 CumulativeOperatingHours[]
+  fuel_used            FuelUsed[]
+  fuel_used_24hrs      FuelUsedLast24[]
+  distances            Distance[]
+  cumulative_idle_hours CumulativeIdleHours[]
+  fuel_remaining       FuelRemaining[]
+  def_remaining        DefRemaining[]
+  engines_status       EngineStatus[]
+  cumulative_load_counts CumulativeLoadCount[]
+  cumulative_payload_totals CumulativePayloadTotals[]
+  fault_codes          FaultCode[]
 }
 
 model Location {
@@ -36,14 +56,18 @@ model Location {
   altitude_units      String   @db.Text
   china_coordinate_id Float
   date_time           DateTime
-  snapshot_id         Int?     // Clave foránea hacia api_snapshot.snapshot_id
+  active              Boolean  @default(true)  
+  snapshot_id         Int?     
+  snapshot            ApiSnapshot? @relation(fields: [snapshot_id], references: [snapshot_id])
 }
 
 model CumulativeOperatingHours {
   coh_id      Int      @id @default(autoincrement())
   hour        Float
   date_time   DateTime
-  snapshot_id Int?     // Clave foránea hacia api_snapshot.snapshot_id
+  active      Boolean  @default(true)  
+  snapshot_id Int?     
+  snapshot    ApiSnapshot? @relation(fields: [snapshot_id], references: [snapshot_id])
 }
 
 model FuelUsed {
@@ -51,7 +75,9 @@ model FuelUsed {
   fuel_consumed Int
   date_time    DateTime
   fuel_units   String   @db.Text
-  snapshot_id  Int?     // Clave foránea hacia api_snapshot.snapshot_id
+  active       Boolean  @default(true)  
+  snapshot_id  Int?     
+  snapshot     ApiSnapshot? @relation(fields: [snapshot_id], references: [snapshot_id])
 }
 
 model FuelUsedLast24 {
@@ -59,35 +85,45 @@ model FuelUsedLast24 {
   fuel_consumed Int
   date_time    DateTime
   fuel_units   String   @db.Text
-  snapshot_id  Int?     // Clave foránea hacia api_snapshot.snapshot_id
+  active       Boolean  @default(true)  
+  snapshot_id  Int?     
+  snapshot     ApiSnapshot? @relation(fields: [snapshot_id], references: [snapshot_id])
 }
 
 model Distance {
   distance_id    Int      @id @default(autoincrement())
   odometer       Float
   odometer_units String   @db.Text
-  snapshot_id    Int?     // Clave foránea hacia api_snapshot.snapshot_id
+  active         Boolean  @default(true)  
+  snapshot_id    Int?     
+  snapshot       ApiSnapshot? @relation(fields: [snapshot_id], references: [snapshot_id])
 }
 
 model CumulativeIdleHours {
   cih_id      Int      @id @default(autoincrement())
   hour        Float
   date_time   DateTime
-  snapshot_id Int?     // Clave foránea hacia api_snapshot.snapshot_id
+  active      Boolean  @default(true)  
+  snapshot_id Int?     
+  snapshot    ApiSnapshot? @relation(fields: [snapshot_id], references: [snapshot_id])
 }
 
 model FuelRemaining {
   fuel_remaining_id Int      @id @default(autoincrement())
   percent           Float
   date_time         DateTime
-  snapshot_id       Int?     // Clave foránea hacia api_snapshot.snapshot_id
+  active            Boolean  @default(true)  
+  snapshot_id       Int?     
+  snapshot          ApiSnapshot? @relation(fields: [snapshot_id], references: [snapshot_id])
 }
 
 model DefRemaining {
   def_remaining_id Int      @id @default(autoincrement())
   percent          Float
   date_time        DateTime
-  snapshot_id      Int?     // Clave foránea hacia api_snapshot.snapshot_id
+  active           Boolean  @default(true)  
+  snapshot_id      Int?     
+  snapshot         ApiSnapshot? @relation(fields: [snapshot_id], references: [snapshot_id])
 }
 
 model EngineStatus {
@@ -95,22 +131,28 @@ model EngineStatus {
   date_time        DateTime
   engine_number    String   @db.Text
   running          Boolean
-  snapshot_id      Int?     // Clave foránea hacia api_snapshot.snapshot_id
+  active           Boolean  @default(true)  
+  snapshot_id      Int?     
+  snapshot         ApiSnapshot? @relation(fields: [snapshot_id], references: [snapshot_id])
 }
 
 model CumulativeLoadCount {
   clo_id      Int      @id @default(autoincrement())
   count       Int
   date_time   DateTime
-  snapshot_id Int?     // Clave foránea hacia api_snapshot.snapshot_id
+  active      Boolean  @default(true)  
+  snapshot_id Int?     
+  snapshot    ApiSnapshot? @relation(fields: [snapshot_id], references: [snapshot_id])
 }
 
 model CumulativePayloadTotals {
-  cpt_id      Int      @id @default(autoincrement())
-  payload_units String  @db.Text
-  payload      Float
-  date_time    DateTime
-  snapshot_id  Int?     // Clave foránea hacia api_snapshot.snapshot_id
+  cpt_id         Int      @id @default(autoincrement())
+  payload_units  String   @db.Text
+  payload        Float
+  date_time      DateTime
+  active         Boolean  @default(true)  
+  snapshot_id    Int?     
+  snapshot       ApiSnapshot? @relation(fields: [snapshot_id], references: [snapshot_id])
 }
 
 model FaultCode {
@@ -122,7 +164,9 @@ model FaultCode {
   temperature_unit String   @db.Text
   code_source      String   @db.Text
   date_time        DateTime
-  snapshot_id      Int?     // Clave foránea hacia api_snapshot.snapshot_id
+  active           Boolean  @default(true)  
+  snapshot_id      Int?     
+  snapshot         ApiSnapshot? @relation(fields: [snapshot_id], references: [snapshot_id])
 }
 
 model Users {
@@ -131,4 +175,12 @@ model Users {
   user_name     String   @db.VarChar(15)
   user_password String   @db.VarChar(15)
   user_type     Int
+  active        Boolean  @default(true)
+  email         String
+}
+
+model Logs {
+  log_folio     Int      @id @default(autoincrement())
+  active        Boolean  @default(true)
+  message       String
 }
