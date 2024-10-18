@@ -75,9 +75,18 @@ export class PrismaEquipementRepo implements EquipementRepository {
           where: criteria,
         }),
         conn.equipement.findMany({
-          where: criteria,
-          skip: (pageNumber - 1) * pageSize,
-          take: pageSize,
+          where: {
+            serial_number: criteria.serial_number
+              ? { contains: criteria.serial_number }
+              : undefined,
+            oem_name: criteria.oem_name
+              ? { contains: criteria.oem_name }
+              : undefined,
+            model: criteria.model ? { contains: criteria.model } : undefined,
+            equipement_id: criteria.equipement_id
+              ? { equals: criteria.equipement_id }
+              : undefined,
+          },
         }),
       ]);
 

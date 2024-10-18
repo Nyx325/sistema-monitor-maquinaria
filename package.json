@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "prisma migrate dev && npm run build && node dist/index.js",
-    "start": "prisma migrate deploy && node dist/index.js",
+    "dev": "npm run build && prisma migrate dev && node dist/index.js",
+    "start": "npm run build && prisma migrate deploy && node dist/index.js",
     "build": "tsc"
   },
   "keywords": [],
