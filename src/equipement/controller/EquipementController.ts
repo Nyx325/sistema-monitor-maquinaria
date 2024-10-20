@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
 import { Equipement } from "@prisma/client";
 import { PrismaEquipementRepo } from "../repository/PrismaEquipementRepo";
-import { EquipementRepository } from "../repository/EquipementRepository";
+import {
+  EquipementRepository,
+  NewEquipement,
+} from "../repository/EquipementRepository";
 
 const repo: EquipementRepository = new PrismaEquipementRepo();
 
-export const isNewEquipementValid = (
-  model: Omit<Equipement, "serial_number">,
-): void => {
+export const isNewEquipementValid = (model: NewEquipement): void => {
   const msg: string[] = [];
 
   if (model.model === "") {
@@ -25,8 +26,13 @@ export const isEquipementValid = (model: Equipement): void => {
   if (model.serial_number === "")
     throw Error("El número de serie no puede estar vacío");
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { serial_number: _, ...newModel } = model;
+  const newModel: NewEquipement = {
+    serial_number: model.serial_number,
+    equipement_id: model.equipement_id,
+    model: model.model,
+    oem_name: model.oem_name,
+  };
+
   isNewEquipementValid(newModel);
 };
 
@@ -34,16 +40,26 @@ export const addEquipement = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const { equipement } = req.body;
-
-  if (!equipement) {
-    res
-      .status(400)
-      .json({ code: 400, error: "Datos del equipo no proporcionados" });
-    return;
-  }
   try {
-    isNewEquipementValid(equipement);
+    const newEquipement: NewEquipement = req.body.equipement;
+
+    if (!newEquipement) {
+      res
+        .status(400)
+        .json({ code: 400, error: "Datos del equipo no proporcionados" });
+      return;
+    }
+
+    isNewEquipementValid(newEquipement);
+
+    const equipement: Equipement = {
+      serial_number: newEquipement.serial_number,
+      oem_name: newEquipement.oem_name,
+      model: newEquipement.model,
+      equipement_id: newEquipement.equipement_id,
+      active: true,
+    };
+
     await repo.add(equipement);
     res.status(201).json({ code: 201, message: "Equipo creado con éxito" });
   } catch (error) {
@@ -133,32 +149,26 @@ export const getEquipement = async (
       pageNumber = "1", // Si no se envía pageNumber, por defecto es "1"
     } = req.query;
 
-    // Crear un objeto de criterio que solo incluye las propiedades proporcionadas
     const criteria: Partial<Equipement> = {
       ...(serialNumber && { serial_number: String(serialNumber) }),
       ...(oemName && { oem_name: String(oemName) }),
       ...(model && { model: String(model) }),
       ...(equipementId && { equipement_id: String(equipementId) }),
-      ...(typeof active !== "undefined" && { active: active !== "false" }),
+      ...(active && { active: active !== "false" }),
     };
 
-    console.log(criteria);
-
-    // Validar si el número de página es un número válido
-    const pageNum = parseInt(pageNumber as string, 10); // Convertir pageNumber a entero
+    const pageNum = parseInt(pageNumber as string, 10);
     if (isNaN(pageNum) || pageNum <= 0) {
       res.status(400).json({
         code: 400,
-        error: "Oops, el número de página debe ser un número positivo válido.",
+        error: "El número de página debe ser un número positivo válido.",
       });
 
       return;
     }
 
-    // Hacer la consulta al repositorio con los filtros y la paginación
     const result = await repo.getBy(criteria, pageNum);
 
-    // Si no se encuentran resultados
     if (!result || result.result.length === 0) {
       res.status(404).json({
         code: 404,

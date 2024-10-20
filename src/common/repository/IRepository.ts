@@ -6,16 +6,15 @@ import { Search } from "../model/Search";
  *
  * @template I - Tipo del identificador del modelo.
  * @template M - Tipo del modelo que extiende de la interfaz Model<I>.
- * @template NM - Tipo del modelo cuando se es un modelo nuevo donde
  * puede omitir elementos como el ID, la flag booleana, etc.
  */
-export interface IRepository<M, NM> {
+export interface IRepository<M> {
   /**
    * Agrega un nuevo modelo al repositorio.
    * @param model - El modelo a agregar.
    * @returns {Promise<void>} - Promesa que se resuelve cuando la operación de adición se completa.
    */
-  add(model: NM): Promise<void>;
+  add(model: M): Promise<void>;
 
   /**
    * Realiza una eliminación permanente del modelo.
