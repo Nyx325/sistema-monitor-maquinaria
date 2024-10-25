@@ -1,21 +1,28 @@
 import express from "express";
-import equipementRoutes from "./equipement/routes/EquipementRoutes";
+import { Router } from "express";
 import path from "path";
+import { fileURLToPath } from "url";
 
-const app = express();
-app.use(express.json());
-app.use("/equipos", equipementRoutes);
+// Definir __dirname manualmente
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-app.get("/app", (_req, res) => {
+const router = Router();
+
+router.use("/css", express.static(path.join(__dirname, "../public/css")));
+router.use("/js", express.static(path.join(__dirname, "../public/js")));
+router.use("/scripts", express.static(path.join(__dirname, "../dist/scripts")));
+router.use(
+  "/components",
+  express.static(path.join(__dirname, "../dist/components")),
+);
+
+router.get("/", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/views/index.html"));
 });
 
-app.get("/app/menu", (_req, res) => {
+router.get("/menu", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/views/menu.html"));
 });
 
-app.use((_req, res) => {
-  res.status(404).sendFile(path.join(__dirname, "../public/views/404.html"));
-});
-
-export default app;
+export default router;

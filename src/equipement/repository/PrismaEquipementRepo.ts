@@ -1,8 +1,8 @@
 import { Equipement, PrismaClient } from "@prisma/client";
-import { IConnector } from "../../common/controller/IConnector";
-import { EquipementRepository } from "./EquipementRepository";
-import { PrismaConnector } from "../../common/controller/PrismaConnector";
-import { Search } from "../../common/model/Search";
+import { IConnector } from "../../common/controller/IConnector.js";
+import { EquipementRepository } from "./EquipementRepository.js";
+import { PrismaConnector } from "../../common/controller/PrismaConnector.js";
+import { Search } from "../../common/model/Search.js";
 
 export class PrismaEquipementRepo implements EquipementRepository {
   private readonly connector: IConnector<PrismaClient>;

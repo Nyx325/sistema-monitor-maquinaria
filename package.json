@@ -2,9 +2,10 @@
   "name": "sistema-monitoreo-marsal-api",
   "version": "1.0.0",
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
-    "dev": "npm run build && prisma migrate dev && node dist/index.js",
-    "start": "npm run build && prisma migrate deploy && node dist/index.js",
+    "dev": "npm run build && prisma migrate dev && node dist/server.js",
+    "start": "npm run build && prisma migrate deploy && node dist/server.js",
     "build": "tsc"
   },
   "keywords": [],

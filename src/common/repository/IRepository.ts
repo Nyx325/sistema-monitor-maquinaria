@@ -1,4 +1,4 @@
-import { Search } from "../model/Search";
+import { Search } from "../model/Search.js";
 
 /**
  * Interfaz para un repositorio genérico que maneja operaciones de almacenamiento y recuperación

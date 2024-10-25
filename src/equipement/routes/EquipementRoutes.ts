@@ -4,12 +4,12 @@ import {
   deleteEquipement,
   getEquipement,
   updateEquipement,
-} from "../controller/EquipementController";
+} from "../controller/EquipementController.js";
 
-const router = Router();
-router.post("/", addEquipement);
-router.get("/", getEquipement);
-router.delete("/:serialNumber", deleteEquipement);
-router.put("/", updateEquipement);
+const equipementRoutes = Router();
+equipementRoutes.post("/", addEquipement);
+equipementRoutes.get("/", getEquipement);
+equipementRoutes.delete("/:serialNumber", deleteEquipement);
+equipementRoutes.put("/", updateEquipement);
 
-export default router;
+export default equipementRoutes;

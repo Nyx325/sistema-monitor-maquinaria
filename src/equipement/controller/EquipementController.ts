@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import { Equipement } from "@prisma/client";
-import { PrismaEquipementRepo } from "../repository/PrismaEquipementRepo";
+import { PrismaEquipementRepo } from "../repository/PrismaEquipementRepo.js";
 import {
   EquipementRepository,
   NewEquipement,
-} from "../repository/EquipementRepository";
+} from "../repository/EquipementRepository.js";
 
 const repo: EquipementRepository = new PrismaEquipementRepo();
 

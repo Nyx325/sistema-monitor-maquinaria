@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
-import { IConnector } from "./IConnector";
+import { IConnector } from "./IConnector.js";
 
 export class PrismaConnector implements IConnector<PrismaClient> {
   private pool: PrismaClient[]; // Pool de conexiones
