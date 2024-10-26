@@ -1,7 +1,8 @@
 import Button from "../components/button.js";
 import { Form } from "../components/form.js";
-import Header from "../components/header.js";
+import GeneralHeader from "../components/generalHeader.js";
 import Modal from "../components/modal.js";
+import Table from "../components/table.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const form = new Form({ title: "Inicio sesión" });
@@ -34,17 +35,23 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.show(false);
   });
 
-  const header = new Header({
-    title: "Hello world",
-    href: "/",
-    iconPath: "/assets/icons/LogoMarsal.png",
+  const header = new GeneralHeader();
+  header.render();
+
+  const table = new Table({
+    title: "Prueba",
+    headers: ["Columna 1", "Columna 2", "Columna 3"],
   });
 
-  header.container.classList.add("header-container");
-  header.icon.classList.add("logo");
-  header.render();
+  table.data = [
+    { uno: 1, dos: 2.3, tres: "Cosa" },
+    { tres: "A", cuatro: 1, cinco: 1.3, seis: "A" },
+  ];
+
+  table.render();
 
   document.body.appendChild(header.container);
   document.body.appendChild(showModal.container);
   document.body.appendChild(modal.container);
+  document.body.appendChild(table.container);
 });

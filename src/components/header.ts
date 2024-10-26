@@ -7,9 +7,9 @@ export interface HeaderOpts {
 }
 
 export default class Header extends Component {
-  private _container: HTMLElement;
-  private _icon: HTMLImageElement;
-  private title: { text: HTMLElement; href: HTMLElement };
+  protected _container: HTMLElement;
+  protected _icon: HTMLImageElement;
+  protected title: { text: HTMLElement; href: HTMLElement };
 
   constructor(opts: HeaderOpts) {
     super();

@@ -31,7 +31,7 @@ export default class Alert extends Component {
     return this.alert;
   }
 
-  public render() {}
+  public render(): void {}
 
   /**
    * Configura el mensaje de texto que se mostrará en la alerta.
