@@ -1,5 +1,6 @@
 import Button from "../components/button.js";
 import { Form } from "../components/form.js";
+import Header from "../components/header.js";
 import Modal from "../components/modal.js";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -33,6 +34,17 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.show(false);
   });
 
+  const header = new Header({
+    title: "Hello world",
+    href: "/",
+    iconPath: "/assets/icons/LogoMarsal.png",
+  });
+
+  header.container.classList.add("header-container");
+  header.icon.classList.add("logo");
+  header.render();
+
+  document.body.appendChild(header.container);
   document.body.appendChild(showModal.container);
   document.body.appendChild(modal.container);
 });

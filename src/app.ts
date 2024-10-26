@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 
 const router = Router();
 
+router.use("/assets", express.static(path.join(__dirname, "../public/assets")));
 router.use("/css", express.static(path.join(__dirname, "../public/css")));
 router.use("/js", express.static(path.join(__dirname, "../public/js")));
 router.use("/scripts", express.static(path.join(__dirname, "../dist/scripts")));
