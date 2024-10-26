@@ -30,7 +30,6 @@ export default class Modal<C extends Component> extends Component {
 
   public show(opt: boolean) {
     if (opt) {
-      this.render();
       this.modal.style.display = "block";
     } else {
       this.modal.style.display = "none";

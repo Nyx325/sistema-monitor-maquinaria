@@ -2,21 +2,21 @@ import Component from "./component.js";
 
 export interface TableOptions {
   id?: string;
-  title: string;
-  headers: string[];
+  title?: string;
+  headers?: string[];
 }
 
 export default class Table extends Component {
   protected table: HTMLTableElement;
-  protected title: string;
-  protected headersCaption: string[];
+  public title: string = "";
+  public headers: string[] = [];
   public data: { [key: string]: unknown }[] = [];
 
-  constructor(opts: TableOptions) {
+  constructor(opts: TableOptions = {}) {
     super();
     this.table = document.createElement("table");
-    this.headersCaption = opts.headers;
-    this.title = opts.title;
+    if (opts.title !== undefined) this.title = opts.title;
+    if (opts.headers !== undefined) this.headers = opts.headers;
   }
 
   render(): void {
@@ -29,7 +29,7 @@ export default class Table extends Component {
     this.table.appendChild(title);
 
     const headers = document.createElement("tr");
-    this.headersCaption.forEach((header) => {
+    this.headers.forEach((header) => {
       const cell = document.createElement("th");
       cell.innerText = header;
       headers.appendChild(cell);

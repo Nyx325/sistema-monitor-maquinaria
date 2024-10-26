@@ -17,8 +17,6 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "cancelar-btn", text: "Cancelar", clases: ["btn", "btn-danger"] },
   ]);
 
-  form.render();
-
   const modal = new Modal<Form>({ content: form });
 
   const showModal = new Button({
@@ -36,18 +34,18 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const header = new GeneralHeader();
-  header.render();
 
-  const table = new Table({
-    title: "Prueba",
-    headers: ["Columna 1", "Columna 2", "Columna 3"],
-  });
-
+  const table = new Table();
+  table.title = "Prueba";
+  table.headers = ["Uno", "Dos", "Tres"];
   table.data = [
     { uno: 1, dos: 2.3, tres: "Cosa" },
     { tres: "A", cuatro: 1, cinco: 1.3, seis: "A" },
   ];
 
+  form.render();
+  modal.render();
+  header.render();
   table.render();
 
   document.body.appendChild(header.container);
