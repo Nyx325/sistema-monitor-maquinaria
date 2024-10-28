@@ -167,12 +167,18 @@ model FaultCode {
   snapshot         ApiSnapshot? @relation(fields: [snapshot_id], references: [snapshot_id])
 }
 
-model Users {
+enum UserType {
+  ADMIN
+  ANALIST
+  MANAGER
+}
+
+model User {
   user_id       Int      @id @default(autoincrement())
   full_name     String   @db.VarChar(25)
   user_name     String   @db.VarChar(15)
   user_password String   @db.VarChar(15)
-  user_type     Int
+  user_type     UserType @default(ANALIST)
   active        Boolean  @default(true)
   email         String
 }

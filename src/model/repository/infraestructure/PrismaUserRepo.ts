@@ -1,22 +1,22 @@
-import { Equipement, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client/extension";
 import { IConnector } from "../../../controller/use_cases/IConnector.js";
-import { EquipementRepository } from "../use_cases/EquipementRepository.js";
+import { UserRepository } from "../use_cases/UserRepository.js";
 import { PrismaConnector } from "../../../controller/infraestructure/PrismaConnector.js";
+import { User, UserType } from "@prisma/client";
 import { Search } from "../../entities/Search.js";
 import Config from "../../../config.js";
 
-export class PrismaEquipementRepo implements EquipementRepository {
+export class PrismaUserRepo implements UserRepository {
   private readonly connector: IConnector<PrismaClient>;
-
   constructor() {
     this.connector = new PrismaConnector();
   }
 
-  async add(model: Equipement): Promise<void> {
+  async add(model: User): Promise<void> {
     let conn: PrismaClient | null = null;
     try {
       conn = await this.connector.getConnection();
-      await conn.equipement.create({ data: model });
+      await conn.user.create({ data: model });
     } catch (error) {
       console.error(`Repository: ${error}`);
       throw error;
@@ -25,31 +25,13 @@ export class PrismaEquipementRepo implements EquipementRepository {
     }
   }
 
-  async update(model: Equipement): Promise<void> {
+  async delete(model: User): Promise<void> {
     let conn: PrismaClient | null = null;
     try {
       conn = await this.connector.getConnection();
-      await conn.equipement.update({
+      await conn.user.update({
         where: {
-          serial_number: model.serial_number,
-        },
-        data: model,
-      });
-    } catch (error) {
-      console.error(`Repository: ${error}`);
-      throw error;
-    } finally {
-      if (conn !== null) this.connector.releaseConnection(conn);
-    }
-  }
-
-  async delete(model: Equipement): Promise<void> {
-    let conn: PrismaClient | null = null;
-    try {
-      conn = await this.connector.getConnection();
-      await conn.equipement.update({
-        where: {
-          serial_number: model.serial_number,
+          user_id: model.user_id,
         },
         data: {
           active: false,
@@ -63,10 +45,50 @@ export class PrismaEquipementRepo implements EquipementRepository {
     }
   }
 
+  async update(model: User): Promise<void> {
+    let conn: PrismaClient | null = null;
+    try {
+      conn = await this.connector.getConnection();
+      await conn.user.update({
+        where: {
+          user_id: model.user_id,
+        },
+        data: model,
+      });
+    } catch (error) {
+      console.error(`Repository: ${error}`);
+      throw error;
+    } finally {
+      if (conn !== null) this.connector.releaseConnection(conn);
+    }
+  }
+
+  async get(id: number): Promise<User | undefined> {
+    let conn: PrismaClient | null = null;
+
+    try {
+      conn = await this.connector.getConnection();
+
+      // Ejecutar las consultas de forma concurrente si no dependen entre sí
+      const result = await conn.user.findFirst({
+        where: {
+          user_id: id,
+        },
+      });
+
+      return result ?? undefined;
+    } catch (error) {
+      console.error(`Repository: ${error}`);
+      throw error;
+    } finally {
+      if (conn !== null) this.connector.releaseConnection(conn);
+    }
+  }
+
   async getBy(
-    criteria: Partial<Equipement>,
+    criteria: Partial<User>,
     pageNumber: number,
-  ): Promise<Search<Equipement>> {
+  ): Promise<Search<User>> {
     let conn: PrismaClient | null = null;
     try {
       conn = await this.connector.getConnection();
@@ -74,27 +96,19 @@ export class PrismaEquipementRepo implements EquipementRepository {
       // Ejecutar las consultas de forma concurrente si no dependen entre sí
       const [totalResults, results] = await Promise.all([
         conn.equipement.count({
-          where: {
-            serial_number: criteria.serial_number
-              ? { contains: criteria.serial_number }
-              : undefined,
-            oem_name: criteria.oem_name
-              ? { contains: criteria.oem_name }
-              : undefined,
-            model: criteria.model ? { contains: criteria.model } : undefined,
-            active: criteria.active,
-          },
+          where: criteria,
         }),
         conn.equipement.findMany({
           where: {
-            serial_number: criteria.serial_number
-              ? { contains: criteria.serial_number }
+            full_name: criteria.full_name
+              ? { contains: criteria.full_name }
               : undefined,
-            oem_name: criteria.oem_name
-              ? { contains: criteria.oem_name }
+            user_name: criteria.user_name
+              ? { contains: criteria.user_name }
               : undefined,
-            model: criteria.model ? { contains: criteria.model } : undefined,
+            user_type: criteria.user_type,
             active: criteria.active,
+            email: criteria.email ? { contains: criteria.email } : undefined,
           },
           skip: (pageNumber - 1) * Config.instance.pageSize, // Skip previous pages
           take: Config.instance.pageSize, // Take only the results for the current page
@@ -109,28 +123,6 @@ export class PrismaEquipementRepo implements EquipementRepository {
         criteria: criteria,
         result: results.length > 0 ? results : [],
       };
-    } catch (error) {
-      console.error(`Repository: ${error}`);
-      throw error;
-    } finally {
-      if (conn !== null) this.connector.releaseConnection(conn);
-    }
-  }
-
-  async get(id: string): Promise<Equipement | undefined> {
-    let conn: PrismaClient | null = null;
-
-    try {
-      conn = await this.connector.getConnection();
-
-      // Ejecutar las consultas de forma concurrente si no dependen entre sí
-      const result = await conn.equipement.findFirst({
-        where: {
-          serial_number: id,
-        },
-      });
-
-      return result ?? undefined;
     } catch (error) {
       console.error(`Repository: ${error}`);
       throw error;
