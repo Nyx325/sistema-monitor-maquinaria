@@ -127,9 +127,12 @@ export const updateEquipement = async (
     if (msg.length !== 0)
       throw new UserError("Campos faltantes: " + msg.join(","));
 
-    await isNewEquipementValid(equipement, false);
+    const search = await repo.get(equipement.serial_number);
+    if (search === undefined) throw new UserError("No se encontró el equipo");
+
+    await isEquipementValid(equipement);
     await repo.update(equipement);
-    res.status(201).json({ message: "Equipo creado con éxito" });
+    res.status(200).json({ message: "Equipo actualizado con éxito" });
   } catch (error) {
     if (error instanceof UserError) {
       res.status(400).json({ message: error.message });
@@ -154,9 +157,6 @@ export const deleteEquipement = async (
   }
 
   try {
-    if (repo.get(serialNumber) === undefined)
-      throw new UserError("El elemento no existe");
-
     // Busca el equipo por su número de serie antes de eliminarlo (opcional)
     const equipement = await repo.get(serialNumber);
 
