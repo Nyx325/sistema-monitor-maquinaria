@@ -33,3 +33,11 @@ para la ejecución del sistema debes hacer uso de
 npm install
 npm run dev
 ```
+
+## Endpoints
+
+### Equipos
+
+```
+/api/equipos
+```

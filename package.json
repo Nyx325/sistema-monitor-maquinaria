@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "migrate": "prisma migrate dev",
-    "dev": "npm run build && prisma migrate dev && node dist/server.js",
+    "dev": "npm run build && prisma migrate dev && node --watch dist/server.js",
     "start": "npm run build && prisma migrate deploy && node dist/server.js",
     "build": "tsc"
   },

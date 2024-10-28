@@ -62,14 +62,23 @@ export const addEquipement = async (
       return;
     }
 
-    if (
-      newEquipement.serial_number === undefined ||
-      newEquipement.model === undefined ||
-      newEquipement.oem_name === undefined
-    ) {
-      res.status(400).json({ message: "Datos del equipo no proporcionados" });
-      return;
+    const msg = [];
+
+    if (newEquipement.serial_number === undefined) {
+      msg.push("se debe especificar un numero de serie");
     }
+
+    if (newEquipement.model === undefined) {
+      msg.push("se debe especificar el modelo");
+    }
+
+    if (newEquipement.oem_name === undefined) {
+      msg.push("se debe especificar el nombre del oem");
+    }
+
+    if (msg.length !== 0)
+      throw new UserError("Campos faltantes: " + msg.join(","));
+
     await isNewEquipementValid(newEquipement, true);
 
     const equipement: Equipement = {
@@ -80,7 +89,7 @@ export const addEquipement = async (
     };
 
     await repo.add(equipement);
-    res.status(201).json({ code: 201, message: "Equipo creado con éxito" });
+    res.status(201).json({ message: "Equipo creado con éxito" });
   } catch (error) {
     if (error instanceof UserError) {
       res.status(400).json({ message: error.message });
@@ -95,26 +104,32 @@ export const updateEquipement = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const { equipement } = req.body;
-
-  if (!equipement) {
-    res
-      .status(400)
-      .json({ code: 400, error: "Datos del equipo no proporcionados" });
-    return;
-  }
-
-  if (!equipement) {
-    res
-      .status(400)
-      .json({ code: 400, error: "Datos del equipo no proporcionados" });
-    return;
-  }
-
   try {
+    const equipement: Equipement = req.body;
+
+    const msg = [];
+
+    if (equipement.serial_number === undefined) {
+      msg.push("se debe especificar un numero de serie");
+    }
+
+    if (equipement.model === undefined) {
+      msg.push("se debe especificar el modelo");
+    }
+
+    if (equipement.oem_name === undefined) {
+      msg.push("se debe especificar el nombre del oem");
+    }
+
+    if (equipement.active === undefined) {
+      msg.push("se debe especificar el estado (activo o inactivo)");
+    }
+    if (msg.length !== 0)
+      throw new UserError("Campos faltantes: " + msg.join(","));
+
     await isNewEquipementValid(equipement, false);
     await repo.update(equipement);
-    res.status(201).json({ code: 201, message: "Equipo creado con éxito" });
+    res.status(201).json({ message: "Equipo creado con éxito" });
   } catch (error) {
     if (error instanceof UserError) {
       res.status(400).json({ message: error.message });
@@ -133,20 +148,20 @@ export const deleteEquipement = async (
 
   if (!serialNumber) {
     res.status(400).json({
-      code: 400,
-      error: "El número de serie no ha sido proporcionado",
+      message: "El número de serie no ha sido proporcionado",
     });
     return;
   }
 
   try {
+    if (repo.get(serialNumber) === undefined)
+      throw new UserError("El elemento no existe");
+
     // Busca el equipo por su número de serie antes de eliminarlo (opcional)
-    const equipementToDelete = await repo.getBy(
-      { serial_number: serialNumber },
-      1,
-    );
-    if (!equipementToDelete.result.length) {
-      res.status(404).json({ code: 404, error: "Equipo no encontrado" });
+    const equipement = await repo.get(serialNumber);
+
+    if (equipement === undefined) {
+      res.status(404).json({ message: "Equipo no encontrado" });
       return;
     }
 
@@ -154,7 +169,7 @@ export const deleteEquipement = async (
     await repo.delete({
       serial_number: serialNumber,
     } as Equipement);
-    res.status(200).json({ code: 200, message: "Equipo eliminado con éxito" });
+    res.status(200).json({ message: "Equipo eliminado con éxito" });
   } catch (error) {
     if (error instanceof UserError) {
       res.status(400).json({ message: error.message });
@@ -165,7 +180,7 @@ export const deleteEquipement = async (
   }
 };
 
-export const getEquipement = async (
+export const getEquipementBy = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
@@ -191,8 +206,7 @@ export const getEquipement = async (
     const pageNum = parseInt(pageNumber as string, 10);
     if (isNaN(pageNum) || pageNum <= 0) {
       res.status(400).json({
-        code: 400,
-        error: "El número de página debe ser un número positivo válido.",
+        message: "El número de página debe ser un número positivo válido.",
       });
 
       return;
@@ -202,7 +216,6 @@ export const getEquipement = async (
 
     if (!result || result.result.length === 0) {
       res.status(404).json({
-        code: 404,
         message: "No encontramos ningún equipo con esos filtros.",
       });
 
@@ -211,9 +224,36 @@ export const getEquipement = async (
 
     // Respuesta exitosa
     res.status(200).json({
-      code: 200,
-      result,
+      search: result,
     });
+  } catch (error) {
+    if (error instanceof UserError) {
+      res.status(400).json({ message: error.message });
+    } else {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+};
+
+export const getEquipement = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { serialNumber } = req.params; // Obtenemos el número de serie desde los parámetros de la URL
+
+    if (!serialNumber) {
+      res.status(400).json({
+        message: "El número de serie no ha sido proporcionado",
+      });
+      return;
+    }
+
+    const result = await repo.get(serialNumber);
+    if (result === undefined)
+      res.status(404).json({ message: "No se encontró el equipo" });
+    else res.status(200).json({ equipement: result });
   } catch (error) {
     if (error instanceof UserError) {
       res.status(400).json({ message: error.message });

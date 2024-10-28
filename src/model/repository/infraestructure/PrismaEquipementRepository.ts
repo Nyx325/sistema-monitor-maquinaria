@@ -3,6 +3,7 @@ import { IConnector } from "../../../controller/use_cases/IConnector.js";
 import { EquipementRepository } from "../use_cases/EquipementRepository.js";
 import { PrismaConnector } from "../../../controller/infraestructure/PrismaConnector.js";
 import { Search } from "../../entities/Search.js";
+import Config from "../../../config.js";
 
 export class PrismaEquipementRepo implements EquipementRepository {
   private readonly connector: IConnector<PrismaClient>;
@@ -67,8 +68,6 @@ export class PrismaEquipementRepo implements EquipementRepository {
     pageNumber: number,
   ): Promise<Search<Equipement>> {
     let conn: PrismaClient | null = null;
-    const pageSize = 10;
-
     try {
       conn = await this.connector.getConnection();
 
@@ -88,12 +87,12 @@ export class PrismaEquipementRepo implements EquipementRepository {
             model: criteria.model ? { contains: criteria.model } : undefined,
             active: criteria.active ? { equals: criteria.active } : undefined,
           },
-          skip: (pageNumber - 1) * pageSize, // Skip previous pages
-          take: pageSize, // Take only the results for the current page
+          skip: (pageNumber - 1) * Config.instance.pageSize, // Skip previous pages
+          take: Config.instance.pageSize, // Take only the results for the current page
         }),
       ]);
 
-      const totalPages = Math.ceil(totalResults / pageSize);
+      const totalPages = Math.ceil(totalResults / Config.instance.pageSize);
 
       return {
         totalPages: totalPages,
@@ -101,6 +100,28 @@ export class PrismaEquipementRepo implements EquipementRepository {
         criteria: criteria,
         result: results.length > 0 ? results : [],
       };
+    } catch (error) {
+      console.error(`Repository: ${error}`);
+      throw error;
+    } finally {
+      if (conn !== null) this.connector.releaseConnection(conn);
+    }
+  }
+
+  async get(id: string): Promise<Equipement | undefined> {
+    let conn: PrismaClient | null = null;
+
+    try {
+      conn = await this.connector.getConnection();
+
+      // Ejecutar las consultas de forma concurrente si no dependen entre sí
+      const result = await conn.equipement.findFirst({
+        where: {
+          serial_number: id,
+        },
+      });
+
+      return result ?? undefined;
     } catch (error) {
       console.error(`Repository: ${error}`);
       throw error;

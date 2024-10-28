@@ -1,17 +1,16 @@
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { IConnector } from "../use_cases/IConnector.js";
+import Config from "../../config.js";
+import UserError from "../../model/entities/UserError.js";
 
 export class PrismaConnector implements IConnector<PrismaClient> {
   private pool: PrismaClient[]; // Pool de conexiones
-  private maxPoolSize: number; // Máximo número de conexiones en el pool
 
   constructor() {
     dotenv.config(); // Carga las variables de entorno desde el archivo .env
 
     this.pool = [];
-    const poolSize = Number(process.env.POOL_SIZE);
-    this.maxPoolSize = isNaN(poolSize) ? 5 : poolSize;
   }
 
   /**
@@ -22,13 +21,15 @@ export class PrismaConnector implements IConnector<PrismaClient> {
     if (this.pool.length > 0) {
       // Devuelve una conexión existente del pool
       return this.pool.pop()!;
-    } else if (this.pool.length < this.maxPoolSize) {
+    } else if (this.pool.length < Config.instance.poolSize) {
       // Crea una nueva conexión si no se ha alcanzado el límite
       const client = new PrismaClient();
       await client.$connect(); // Conectar a la base de datos
       return client;
     } else {
-      throw new Error("Se ha alcanzado el límite del pool de conexiones.");
+      throw new UserError(
+        "Exceso de tráfico en el sistema, intente más tarde.",
+      );
     }
   }
 

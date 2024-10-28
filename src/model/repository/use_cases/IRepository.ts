@@ -8,7 +8,7 @@ import { Search } from "../../entities/Search.js";
  * @template M - Tipo del modelo que extiende de la interfaz Model<I>.
  * puede omitir elementos como el ID, la flag booleana, etc.
  */
-export interface IRepository<M> {
+export interface IRepository<M, I> {
   /**
    * Agrega un nuevo modelo al repositorio.
    * @param model - El modelo a agregar.
@@ -37,4 +37,11 @@ export interface IRepository<M> {
    * @returns {Promise<Search<M>>} - Promesa que se resuelve con los resultados de búsqueda.
    */
   getBy(criteria: Partial<M>, pageNumber: number): Promise<Search<M>>;
+
+  /*
+   * Recupera una entidad dado un ID
+   * @param id - El ID del modelo.
+   * @returns {Promise<M>} - Promesa que se resuelve con el resultado de búsqueda.
+   */
+  get(id: I): Promise<M | undefined>;
 }
