@@ -1,5 +1,8 @@
 # Sistema
 
+La documentación de los endpoints se encuentra en
+[ApiDoc](./ApiDoc.md)
+
 ## Desplegar en producción
 
 Se debe configurar un archivo `.env` dentro
@@ -32,12 +35,4 @@ para la ejecución del sistema debes hacer uso de
 ```bash
 npm install
 npm run dev
-```
-
-## Endpoints
-
-### Equipos
-
-```
-/api/equipos
 ```
