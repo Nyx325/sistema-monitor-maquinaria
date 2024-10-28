@@ -1,5 +1,5 @@
 import { Router } from "express";
-import equipementRoutes from "./equipement/routes/EquipementRoutes.js";
+import equipementRoutes from "./routes/EquipementRoutes.js";
 
 const apiRouter = Router();
 

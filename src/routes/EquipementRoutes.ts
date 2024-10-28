@@ -4,7 +4,7 @@ import {
   deleteEquipement,
   getEquipement,
   updateEquipement,
-} from "../controller/EquipementController.js";
+} from "../controller/infraestructure/EquipementController.js";
 
 const equipementRoutes = Router();
 equipementRoutes.post("/", addEquipement);

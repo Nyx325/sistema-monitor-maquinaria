@@ -42,11 +42,14 @@ document.addEventListener("DOMContentLoaded", () => {
     { uno: 1, dos: 2.3, tres: "Cosa" },
     { tres: "A", cuatro: 1, cinco: 1.3, seis: "A" },
   ];
+  table.container.classList.add("table");
 
-  form.render();
-  modal.render();
-  header.render();
-  table.render();
+  Promise.all([
+    form.render(),
+    modal.render(),
+    header.render(),
+    table.render(),
+  ]).then();
 
   document.body.appendChild(header.container);
   document.body.appendChild(showModal.container);

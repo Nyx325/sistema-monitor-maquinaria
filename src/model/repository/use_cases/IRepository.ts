@@ -1,4 +1,4 @@
-import { Search } from "../model/Search.js";
+import { Search } from "../../entities/Search.js";
 
 /**
  * Interfaz para un repositorio genérico que maneja operaciones de almacenamiento y recuperación
@@ -17,11 +17,11 @@ export interface IRepository<M> {
   add(model: M): Promise<void>;
 
   /**
-   * Realiza una eliminación permanente del modelo.
+   * Realiza una eliminación logica del modelo.
    * @param model - El modelo a eliminar permanentemente.
    * @returns {Promise<void>} - Promesa que se resuelve cuando la operación de eliminación permanente se completa.
    */
-  permanentlyDeletion(model: M): Promise<void>;
+  delete(model: M): Promise<void>;
 
   /**
    * Actualiza un modelo existente en el repositorio.

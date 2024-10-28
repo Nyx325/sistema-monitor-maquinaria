@@ -19,8 +19,6 @@ model Equipement {
   active        Boolean @default(true) 
   oem_name      String  @db.Text
   model         String  @db.Text
-  equipement_id String
-
 
   snapshots     ApiSnapshot[]
 }

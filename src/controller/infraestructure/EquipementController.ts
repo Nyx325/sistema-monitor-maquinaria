@@ -1,15 +1,27 @@
 import { Request, Response } from "express";
 import { Equipement } from "@prisma/client";
-import { PrismaEquipementRepo } from "../repository/PrismaEquipementRepo.js";
+import { PrismaEquipementRepo } from "../../model/repository/infraestructure/PrismaEquipementRepository.js";
 import {
-  EquipementRepository,
   NewEquipement,
-} from "../repository/EquipementRepository.js";
+  EquipementRepository,
+} from "../../model/repository/use_cases/EquipementRepository.js";
+import UserError from "../../model/entities/UserError.js";
 
 const repo: EquipementRepository = new PrismaEquipementRepo();
 
-export const isNewEquipementValid = (model: NewEquipement): void => {
+export const isNewEquipementValid = async (
+  model: NewEquipement,
+  adding: boolean,
+): Promise<void> => {
   const msg: string[] = [];
+
+  if (adding === true && model.serial_number !== undefined) {
+    const result = await repo.getBy({ serial_number: model.serial_number }, 1);
+
+    if (result.result.length > 0) {
+      msg.push("ya existe un elemento con ese número de serie");
+    }
+  }
 
   if (model.model === "") {
     msg.push("se debe colocar el modelo");
@@ -19,21 +31,23 @@ export const isNewEquipementValid = (model: NewEquipement): void => {
     msg.push("se debe colocar el nombre del OEM");
   }
 
-  if (msg.length > 0) throw Error(msg.join(", "));
+  if (msg.length > 0) {
+    console.error(msg.join(", "));
+    throw new UserError(msg.join(", "));
+  }
 };
 
-export const isEquipementValid = (model: Equipement): void => {
+export const isEquipementValid = async (model: Equipement): Promise<void> => {
   if (model.serial_number === "")
-    throw Error("El número de serie no puede estar vacío");
+    throw new UserError("El número de serie no puede estar vacío");
 
   const newModel: NewEquipement = {
     serial_number: model.serial_number,
-    equipement_id: model.equipement_id,
     model: model.model,
     oem_name: model.oem_name,
   };
 
-  isNewEquipementValid(newModel);
+  await isNewEquipementValid(newModel, false);
 };
 
 export const addEquipement = async (
@@ -41,30 +55,39 @@ export const addEquipement = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const newEquipement: NewEquipement = req.body.equipement;
+    const newEquipement: NewEquipement = req.body;
 
     if (!newEquipement) {
-      res
-        .status(400)
-        .json({ code: 400, error: "Datos del equipo no proporcionados" });
+      res.status(400).json({ message: "Datos del equipo no proporcionados" });
       return;
     }
 
-    isNewEquipementValid(newEquipement);
+    if (
+      newEquipement.serial_number === undefined ||
+      newEquipement.model === undefined ||
+      newEquipement.oem_name === undefined
+    ) {
+      res.status(400).json({ message: "Datos del equipo no proporcionados" });
+      return;
+    }
+    await isNewEquipementValid(newEquipement, true);
 
     const equipement: Equipement = {
       serial_number: newEquipement.serial_number,
       oem_name: newEquipement.oem_name,
       model: newEquipement.model,
-      equipement_id: newEquipement.equipement_id,
       active: true,
     };
 
     await repo.add(equipement);
     res.status(201).json({ code: 201, message: "Equipo creado con éxito" });
   } catch (error) {
-    console.error(error);
-    res.status(400).json({ code: 400, error });
+    if (error instanceof UserError) {
+      res.status(400).json({ message: error.message });
+    } else {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   }
 };
 
@@ -89,12 +112,16 @@ export const updateEquipement = async (
   }
 
   try {
-    isNewEquipementValid(equipement);
+    await isNewEquipementValid(equipement, false);
     await repo.update(equipement);
     res.status(201).json({ code: 201, message: "Equipo creado con éxito" });
   } catch (error) {
-    console.error(error);
-    res.status(400).json({ code: 400, error });
+    if (error instanceof UserError) {
+      res.status(400).json({ message: error.message });
+    } else {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   }
 };
 
@@ -124,13 +151,17 @@ export const deleteEquipement = async (
     }
 
     // Elimina el equipo utilizando el número de serie
-    await repo.permanentlyDeletion({
+    await repo.delete({
       serial_number: serialNumber,
     } as Equipement);
     res.status(200).json({ code: 200, message: "Equipo eliminado con éxito" });
   } catch (error) {
-    console.error(error);
-    res.status(400).json({ code: 400, error: error });
+    if (error instanceof UserError) {
+      res.status(400).json({ message: error.message });
+    } else {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   }
 };
 
@@ -184,10 +215,11 @@ export const getEquipement = async (
       result,
     });
   } catch (error) {
-    console.error("Error al obtener los equipos: ", error);
-    res.status(500).json({
-      code: 500,
-      error: "Hubo un problema en el servidor. Intenta de nuevo más tarde.",
-    });
+    if (error instanceof UserError) {
+      res.status(400).json({ message: error.message });
+    } else {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   }
 };

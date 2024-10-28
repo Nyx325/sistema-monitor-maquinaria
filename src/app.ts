@@ -12,10 +12,13 @@ const router = Router();
 router.use("/assets", express.static(path.join(__dirname, "../public/assets")));
 router.use("/css", express.static(path.join(__dirname, "../public/css")));
 router.use("/js", express.static(path.join(__dirname, "../public/js")));
-router.use("/scripts", express.static(path.join(__dirname, "../dist/scripts")));
+router.use(
+  "/scripts",
+  express.static(path.join(__dirname, "../dist/view/scripts/")),
+);
 router.use(
   "/components",
-  express.static(path.join(__dirname, "../dist/components")),
+  express.static(path.join(__dirname, "../dist/view/components/")),
 );
 
 router.get("/", (_req, res) => {
@@ -24,6 +27,10 @@ router.get("/", (_req, res) => {
 
 router.get("/menu", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/views/menu.html"));
+});
+
+router.get("/login", (_req, res) => {
+  res.sendFile(path.join(__dirname, "../public/views/login.html"));
 });
 
 export default router;

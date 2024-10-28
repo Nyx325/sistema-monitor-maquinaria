@@ -1,8 +1,8 @@
 import { Equipement, PrismaClient } from "@prisma/client";
-import { IConnector } from "../../common/controller/IConnector.js";
-import { EquipementRepository } from "./EquipementRepository.js";
-import { PrismaConnector } from "../../common/controller/PrismaConnector.js";
-import { Search } from "../../common/model/Search.js";
+import { IConnector } from "../../../controller/use_cases/IConnector.js";
+import { EquipementRepository } from "../use_cases/EquipementRepository.js";
+import { PrismaConnector } from "../../../controller/infraestructure/PrismaConnector.js";
+import { Search } from "../../entities/Search.js";
 
 export class PrismaEquipementRepo implements EquipementRepository {
   private readonly connector: IConnector<PrismaClient>;
@@ -17,7 +17,7 @@ export class PrismaEquipementRepo implements EquipementRepository {
       conn = await this.connector.getConnection();
       await conn.equipement.create({ data: model });
     } catch (error) {
-      console.error(error);
+      console.error(`Repository: ${error}`);
       throw error;
     } finally {
       if (conn !== null) this.connector.releaseConnection(conn);
@@ -35,24 +35,27 @@ export class PrismaEquipementRepo implements EquipementRepository {
         data: model,
       });
     } catch (error) {
-      console.error(error);
+      console.error(`Repository: ${error}`);
       throw error;
     } finally {
       if (conn !== null) this.connector.releaseConnection(conn);
     }
   }
 
-  async permanentlyDeletion(model: Equipement): Promise<void> {
+  async delete(model: Equipement): Promise<void> {
     let conn: PrismaClient | null = null;
     try {
       conn = await this.connector.getConnection();
-      await conn.equipement.delete({
+      await conn.equipement.update({
         where: {
           serial_number: model.serial_number,
         },
+        data: {
+          active: false,
+        },
       });
     } catch (error) {
-      console.error(error);
+      console.error(`Repository: ${error}`);
       throw error;
     } finally {
       if (conn !== null) this.connector.releaseConnection(conn);
@@ -83,9 +86,6 @@ export class PrismaEquipementRepo implements EquipementRepository {
               ? { contains: criteria.oem_name }
               : undefined,
             model: criteria.model ? { contains: criteria.model } : undefined,
-            equipement_id: criteria.equipement_id
-              ? { equals: criteria.equipement_id }
-              : undefined,
             active: criteria.active ? { equals: criteria.active } : undefined,
           },
           skip: (pageNumber - 1) * pageSize, // Skip previous pages
@@ -102,7 +102,7 @@ export class PrismaEquipementRepo implements EquipementRepository {
         result: results.length > 0 ? results : [],
       };
     } catch (error) {
-      console.error(error);
+      console.error(`Repository: ${error}`);
       throw error;
     } finally {
       if (conn !== null) this.connector.releaseConnection(conn);
