@@ -3,32 +3,39 @@ import Button, { ButtonOptions } from "./button.js";
 import Component from "./component.js";
 import LabeledInput, { LabeledInputOptions } from "./labeledInput.js";
 
+/**
+ * Opciones de configuración para el formulario.
+ */
 export interface FormOpts {
+  /** ID opcional para el formulario. */
   id?: string;
+  /** Título que se muestra en el formulario. */
   title: string;
 }
 
 /**
- * La clase `Form` representa un formulario que contiene un grupo de campos de entrada etiquetados.
- * Se puede configurar a partir de un array de strings o de objetos con configuraciones específicas.
+ * Clase `Form` que representa un formulario con campos de entrada etiquetados y botones.
+ * Incluye un componente de alerta (`Alert`) y permite configurar tanto los campos como los botones.
  */
 export class Form extends Component {
-  /** Instancia de la clase `Alert` asociada al formulario para manejar alertas. */
+  /** Componente `Alert` asociado al formulario, usado para mostrar mensajes de alerta. */
   public readonly alert: Alert;
 
-  /** Contenedor del formulario, implementado como un elemento HTML `<form>`. */
+  /** Contenedor del formulario representado como un elemento HTML `<form>`. */
   public readonly container: HTMLFormElement;
 
   /** Elemento HTML `<legend>` que muestra el título del formulario. */
   private readonly legend: HTMLLegendElement;
 
-  /** Objeto que almacena las entradas etiquetadas, indexadas por una clave generada a partir de los títulos. */
+  /** Campos de entrada del formulario, indexados por una clave generada a partir de los títulos. */
   private _fields: { [key: string]: LabeledInput } = {};
+
+  /** Botones del formulario, indexados por una clave generada a partir de los textos de los botones. */
   private _buttons: { [key: string]: Button } = {};
 
   /**
-   * Crea una instancia de la clase `Form` con un título especificado.
-   * @param title - El título que se mostrará en el formulario.
+   * Crea una nueva instancia de `Form` con las opciones especificadas.
+   * @param opts - Opciones de configuración para el formulario, como el título y un id opcional.
    */
   constructor(opts: FormOpts) {
     super();
@@ -42,6 +49,9 @@ export class Form extends Component {
     this.title = opts.title;
   }
 
+  /**
+   * Renderiza el formulario junto con sus campos, botones y el componente de alerta.
+   */
   public render() {
     let keys = [];
     this.container.innerHTML = "";
@@ -68,8 +78,7 @@ export class Form extends Component {
 
   /**
    * Obtiene los campos actuales del formulario como un objeto indexado.
-   * Las claves son los nombres normalizados de cada campo.
-   * @returns Un objeto donde cada clave es el nombre normalizado del campo y el valor es la instancia `LabeledInput`.
+   * @returns Objeto donde cada clave es el nombre normalizado del campo y el valor es una instancia de `LabeledInput`.
    */
   public get fields(): { [key: string]: LabeledInput } {
     return this._fields;
@@ -77,17 +86,16 @@ export class Form extends Component {
 
   /**
    * Configura el título del formulario, que se muestra en el elemento `<legend>`.
-   * @param title - El título a mostrar.
+   * @param title - Texto que se mostrará como título del formulario.
    */
   public set title(title: string) {
     this.legend.innerText = title.trim();
   }
 
   /**
-   * Inicializa los campos del formulario en base a un array de objetos.
-   * Limpia el contenedor, reinicia `_fields`, y agrega cada campo especificado.
-   * @param fields - Array de objetos que representan cada campo con propiedades `title` y `type`.
-   * @private
+   * Inicializa los inputs del formulario con un arreglo de configuraciones.
+   * Limpia el contenedor y redefine todos los inputs en base a las configuraciones de los nuevos campos.
+   * @param fields - Arreglo de configuraciones para cada campo, que incluye propiedades como `title` y `type`.
    */
   public setFields(fields: LabeledInputOptions[]): void {
     this._fields = {};
@@ -101,13 +109,17 @@ export class Form extends Component {
 
   /**
    * Obtiene un campo específico del formulario.
-   * @param fieldName - Nombre del campo a buscar (se normaliza para evitar discrepancias de formato).
-   * @returns La instancia `LabeledInput` correspondiente al campo, o `undefined` si no existe.
+   * @param key - Nombre normalizado del campo a buscar.
+   * @returns Instancia `LabeledInput` del campo o `undefined` si no existe.
    */
   public getField(key: string): LabeledInput | undefined {
     return this._fields[key];
   }
 
+  /**
+   * Configura los botones del formulario en base a un arreglo de opciones.
+   * @param buttons - Arreglo de configuraciones para cada botón, que incluye propiedades como `text` e `id`.
+   */
   public setButtons(buttons: ButtonOptions[]) {
     this._buttons = {};
 
@@ -118,10 +130,18 @@ export class Form extends Component {
     });
   }
 
+  /**
+   * Obtiene un botón específico del formulario.
+   * @param key - Nombre normalizado del botón a buscar.
+   * @returns Instancia `Button` correspondiente o `undefined` si no existe.
+   */
   public getButton(key: string): Button | undefined {
     return this._buttons[key];
   }
 
+  /**
+   * Limpia los valores de todos los campos de entrada en el formulario.
+   */
   public cleanFields(): void {
     const keys = Object.keys(this._fields);
     keys.forEach((key) => {
