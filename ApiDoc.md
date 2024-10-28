@@ -119,9 +119,7 @@ Esta documentación describe las rutas de la API para gestionar equipos. Las rut
       "message": "No se encontró el equipo"
     }
     ```
-
 ### 5. **Buscar equipos con filtros**
-
 - **Ruta:** `GET /api/equipos`
 - **Descripción:** Obtiene una lista de equipos según los filtros especificados en los parámetros de consulta.
 - **Parámetros de consulta:**
@@ -132,10 +130,16 @@ Esta documentación describe las rutas de la API para gestionar equipos. Las rut
   - `active` (opcional, boolean): Filtra por estado (activo/inactivo).
   - `pageNumber` (opcional, string): Número de página para la paginación (predeterminado es `1`).
 - **Respuesta:**
-  - **Código 200:** Retorna una lista de equipos que coinciden con los filtros.
+  - **Código 200:** Retorna una lista de equipos que coinciden con los filtros en la siguiente estructura:
     ```json
     {
       "search": {
+        "totalPages": 5,
+        "currentPage": 1,
+        "criteria": {
+          "serial_number": "12345",
+          "oem_name": "Nombre del OEM"
+        },
         "result": [
           {
             "serial_number": "12345",
@@ -143,8 +147,7 @@ Esta documentación describe las rutas de la API para gestionar equipos. Las rut
             "oem_name": "Nombre del OEM",
             "model": "Modelo del equipo"
           }
-        ],
-        "page": 1
+        ]
       }
     }
     ```
@@ -160,3 +163,9 @@ Esta documentación describe las rutas de la API para gestionar equipos. Las rut
       "message": "No encontramos ningún equipo con esos filtros."
     }
     ```
+
+### Detalles de la Respuesta de Búsqueda
+- **totalPages**: Número total de páginas disponibles en los resultados de la búsqueda.
+- **currentPage**: Número de la página actual en la que se encuentran los resultados.
+- **criteria**: Objeto que representa los criterios de búsqueda utilizados para filtrar los resultados.
+- **result**: Arreglo de instancias del tipo `Equipement` que representan los elementos encontrados.
