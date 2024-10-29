@@ -16,9 +16,9 @@ const isNewEquipementValid = async (
   const msg: string[] = [];
 
   if (adding === true && model.serial_number !== undefined) {
-    const result = await repo.getBy({ serial_number: model.serial_number }, 1);
+    const result = await repo.get(model.serial_number);
 
-    if (result.result.length > 0) {
+    if (result !== undefined) {
       msg.push("ya existe un elemento con ese número de serie");
     }
   }

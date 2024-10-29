@@ -1,10 +1,12 @@
+import { Equipement } from "@prisma/client";
 import Button from "../components/button.js";
 import { Form } from "../components/form.js";
 import GeneralHeader from "../components/generalHeader.js";
 import Modal from "../components/modal.js";
 import Table from "../components/table.js";
+import { Search } from "../../model/entities/Search.js";
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const form = new Form({ title: "Inicio sesión" });
   form.setFields([
     { title: "Usuario", required: true },
@@ -35,13 +37,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const header = new GeneralHeader();
 
+  const equiposJSON = await fetch("http://localhost:3000/api/equipos", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const equipos: Search<Equipement> = JSON.parse(
+    await equiposJSON.text(),
+  ).search;
+  console.log(equipos);
+
   const table = new Table();
-  table.title = "Prueba";
-  table.headers = ["Uno", "Dos", "Tres"];
-  table.data = [
-    { uno: 1, dos: 2.3, tres: "Cosa" },
-    { tres: "A", cuatro: 1, cinco: 1.3, seis: "A" },
-  ];
+  table.title = "Equipos";
+  table.headers = ["Numero de serie", "Activo", "OEM", "Modelo"];
+  table.data = equipos.result;
   table.container.classList.add("table");
 
   Promise.all([
