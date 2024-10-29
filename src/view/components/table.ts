@@ -1,3 +1,4 @@
+import { Search } from "../../model/entities/Search.js";
 import Component from "./component.js";
 
 /**
@@ -27,7 +28,15 @@ export default class Table extends Component {
   public headers: string[] = [];
 
   /** Datos que se mostrarán en la tabla. */
-  public data: { [key: string]: unknown }[] = [];
+  private data: { [key: string]: unknown }[] = [];
+
+  private keyAttribute: string;
+
+  private delete: (id: string) => void;
+
+  private update: (id: string) => void;
+
+  public lastSearch: Search<unknown>;
 
   /**
    * Crea una nueva instancia de `Table` con las opciones especificadas.
@@ -39,6 +48,17 @@ export default class Table extends Component {
     this.table = document.createElement("table");
     if (opts.title !== undefined) this.title = opts.title; // Asigna el título si se proporciona.
     if (opts.headers !== undefined) this.headers = opts.headers; // Asigna los encabezados si se proporcionan.
+    this.keyAttribute = "";
+    this.table.classList.add("table", "table-striped", "container");
+
+    this.lastSearch = {
+      currentPage: 1,
+      totalPages: 1,
+      criteria: {},
+      result: [],
+    };
+    this.delete = async () => {};
+    this.update = async () => {};
   }
 
   /**
@@ -75,6 +95,32 @@ export default class Table extends Component {
         dataRow.appendChild(cell);
       });
 
+      let td = document.createElement("td");
+      const deleteBtn = document.createElement("button");
+      deleteBtn.classList.add("btn", "btn-danger", "mb-1");
+      deleteBtn.innerHTML = `<i class="fa fa-trash"></i>`;
+
+      deleteBtn.setAttribute("key", String(rowData[this.keyAttribute]));
+      deleteBtn.addEventListener("click", () => {
+        const id = deleteBtn.getAttribute("key") as string;
+        this.delete(id);
+      });
+
+      td.appendChild(deleteBtn);
+      dataRow.appendChild(td);
+
+      td = document.createElement("td");
+      const modifyBtn = document.createElement("button");
+      modifyBtn.classList.add("btn", "btn-primary", "mb-1");
+      modifyBtn.innerHTML = '<i class="fa fa-pencil"></i>';
+      modifyBtn.setAttribute("key", String(rowData[this.keyAttribute]));
+      modifyBtn.addEventListener("click", () => {
+        const id = deleteBtn.getAttribute("key") as string;
+        this.update(id);
+      });
+      td.appendChild(modifyBtn);
+      dataRow.appendChild(td);
+
       this.table.appendChild(dataRow); // Agrega la fila de datos a la tabla
     });
   }
@@ -86,5 +132,18 @@ export default class Table extends Component {
    */
   get container(): HTMLElement {
     return this.table; // Retorna el elemento de la tabla
+  }
+
+  public setData(keyAttribute: string, data: { [key: string]: unknown }[]) {
+    this.data = data;
+    this.keyAttribute = keyAttribute;
+  }
+
+  public deleteEvent(func: (id: string) => void) {
+    this.delete = func;
+  }
+
+  public modifyEvent(func: (id: string) => void) {
+    this.update = func;
   }
 }

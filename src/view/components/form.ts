@@ -33,6 +33,12 @@ export class Form extends Component {
   /** Botones del formulario, indexados por una clave generada a partir de los textos de los botones. */
   private _buttons: { [key: string]: Button } = {};
 
+  /** Variable para almacenar temporalment el dato a modificar */
+  public element: { [key: string]: unknown } | undefined;
+
+  private add: (model: unknown) => void = () => {};
+  private modify: (model: unknown) => void = () => {};
+
   /**
    * Crea una nueva instancia de `Form` con las opciones especificadas.
    * @param opts - Opciones de configuración para el formulario, como el título y un id opcional.
@@ -148,4 +154,8 @@ export class Form extends Component {
       this._fields[key].input.value = "";
     });
   }
+
+  /**
+   */
+  //public addEvent((model: unknown)=>void)
 }

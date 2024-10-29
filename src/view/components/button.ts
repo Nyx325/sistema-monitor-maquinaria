@@ -33,6 +33,9 @@ export default class Button extends Component {
     this.text = opts.text;
     this.type = opts.type ?? "button";
     this.addClasses(...(opts.clases ?? []));
+
+    this.button.setAttribute("key", "serialNumber");
+    this.button.getAttribute("key");
   }
 
   /**
