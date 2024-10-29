@@ -1,59 +1,40 @@
-import { NewEquipement } from "../../model/repository/use_cases/EquipementRepository.js";
-import { Form } from "../components/form.js";
-import LabeledInput from "../components/labeledInput.js";
+import { Equipement } from "@prisma/client";
+import { Search } from "../../model/entities/Search.js";
+import Table from "../components/table.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const form = new Form({ title: "Form" });
-  form.setFields([
-    { id: "nums", title: "Numero de serie", required: true },
-    { id: "modelo", title: "Modelo", required: true },
-    { id: "oem", title: "OEM", required: true },
-  ]);
+  const table = new Table({ title: "Equipos" });
 
-  form.setButtons([{ id: "crear-btn", text: "Crear equipo", type: "submit" }]);
+  // Solcitas datos a la API
+  const solicitud = await fetch("http://localhost:3000/api/equipos");
 
-  const btnCrear = form.getButton("crear-btn");
+  // Conviertes la solicitud a texto plano, y de formato JSON lo pasas
+  // a un objeto de tipo Search
+  const busqueda: Search<Equipement> = JSON.parse(await solicitud.text());
 
-  btnCrear?.button.addEventListener("click", async (event) => {
-    //Evito que el formulario mande el método POST
-    event.preventDefault();
+  // Asignas el resultado de la busqueda a la tabla
+  table.setData("serial_number", busqueda.result);
 
-    /* getField devuelve un LabeledInput o undefined, con
-     * as LabeledInput forzamos el tipo
-     */
-    const nums = form.getField("nums") as LabeledInput;
-    const modelo = form.getField("modelo") as LabeledInput;
-    const oem = form.getField("oem") as LabeledInput;
-
-    const nuevoEquipo: NewEquipement = {
-      serial_number: nums?.input.value.trim(),
-      model: modelo?.input.value.trim(),
-      oem_name: oem?.input.value.trim(),
-    };
-
-    const response = await fetch("http://localhost:3000/api/equipos", {
-      // Metodo a usar, GET, PUT, POST, DELETE
-      method: "POST",
+  table.deleteEvent(async (id) => {
+    const response = await fetch(`http://localhost:3000/api/equipos/${id}`, {
+      method: "DELETE",
       headers: {
-        // indicar que mandamos el cuerpo en
-        // formato JSON
         "Content-Type": "application/json",
       },
-      // Formatear el objeto en texto para
-      // la solicitud
-      body: JSON.stringify(nuevoEquipo),
     });
 
     if (response.status >= 400) {
-      const error = JSON.parse(await response.text());
-      form.alert.message = error.message;
-      form.alert.visible = true;
+      const res = JSON.parse(await response.text());
+      console.error(res);
     } else {
-      console.log("to bien");
-      form.alert.visible = false;
+      const res = await fetch(`http://localhost:3000/api/equipos`);
+      const search: Search<Equipement> = JSON.parse(await res.text());
+      table.setData("serial_number", search.result);
+      table.render();
     }
   });
 
-  form.render();
-  document.body.appendChild(form.container);
+  // Dibujas y colocas la tabla en el HTML
+  table.render();
+  document.body.appendChild(table.container);
 });
