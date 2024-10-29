@@ -9,16 +9,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const form = new Form({ title: "" });
 
   form.setFields([
-<<<<<<< HEAD
     { id: "nums", title: "Numero de serie", required: true },
     { id: "modelo", title: "Modelo", required: true },
     { id: "oem", title: "OEM", required: true },
-    
-=======
-    { title: "Numero de serie", required: true },
-    { title: "OEM", required: true },
-    { title: "Modelo", required: true },
->>>>>>> dcfae84d8b0cca31aa8d8741b55f211f03734faf
   ]);
 
   form.setButtons([
@@ -42,19 +35,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const table = new Table({ title: "Equipos" });
   table.headers = ["Numero de serie", "Activo", "OEM", "Model"];
 
-<<<<<<< HEAD
-    const response = await fetch("http://localhost:3000/api/equipos", {
-      // Metodo a usar, GET, PUT, POST, DELETE
-      method: "POST",
-      headers: {
-        // indicar que mandamos el cuerpo en
-        // formato JSON
-        "Content-Type": "application/json",
-      },
-      // Formatear el objeto en texto para
-      // la  
-      body: JSON.stringify(nuevoEquipo),
-=======
   // Solcitas datos a la API
   const solicitud = await fetch(
     "http://localhost:3000/api/equipos?active=true",
@@ -70,7 +50,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   table.deleteEvent(async (id) => {
     const response = await fetch(`http://localhost:3000/api/equipos/${id}`, {
       method: "DELETE",
->>>>>>> dcfae84d8b0cca31aa8d8741b55f211f03734faf
     });
 
     if (response.status >= 400) {
