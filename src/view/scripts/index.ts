@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     { id: "nums", title: "Numero de serie", required: true },
     { id: "modelo", title: "Modelo", required: true },
     { id: "oem", title: "OEM", required: true },
+    
   ]);
 
   form.setButtons([{ id: "crear-btn", text: "Crear equipo", type: "submit" }]);
@@ -40,7 +41,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         "Content-Type": "application/json",
       },
       // Formatear el objeto en texto para
-      // la solicitud
+      // la  
       body: JSON.stringify(nuevoEquipo),
     });
 
