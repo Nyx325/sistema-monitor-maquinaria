@@ -218,9 +218,7 @@ export const getEquipementBy = async (
     }
 
     // Respuesta exitosa
-    res.status(200).json({
-      search: result,
-    });
+    res.status(200).json(result);
   } catch (error) {
     if (error instanceof UserError) {
       res.status(400).json({ message: error.message });
@@ -248,7 +246,7 @@ export const getEquipement = async (
     const result = await repo.get(serialNumber);
     if (result === undefined)
       res.status(404).json({ message: "No se encontró el equipo" });
-    else res.status(200).json({ equipement: result });
+    else res.status(200).json(result);
   } catch (error) {
     if (error instanceof UserError) {
       res.status(400).json({ message: error.message });

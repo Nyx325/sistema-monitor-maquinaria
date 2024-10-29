@@ -1,3 +1,4 @@
+/*
 import { Location, PrismaClient } from "@prisma/client";
 import { IConnector } from "../../../controller/use_cases/IConnector.js";
 import { PrismaConnector } from "../../../controller/infraestructure/PrismaConnector.js";
@@ -118,7 +119,7 @@ export class PrismaLocationRepo implements LocationRepository {
       if (conn !== null) this.connector.releaseConnection(conn);
     }
   }
-
+/*
   async get(id: string): Promise<Location | undefined> {
     let conn: PrismaClient | null = null;
 
@@ -176,4 +177,8 @@ export class PrismaLocationRepo implements LocationRepository {
       if (conn !== null) this.connector.releaseConnection(conn);
     }
   }
+
+
 }
+
+    */

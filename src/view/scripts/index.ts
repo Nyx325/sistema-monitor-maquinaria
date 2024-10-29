@@ -1,69 +1,59 @@
-import { Equipement } from "@prisma/client";
-import Button from "../components/button.js";
+import { NewEquipement } from "../../model/repository/use_cases/EquipementRepository.js";
 import { Form } from "../components/form.js";
-import GeneralHeader from "../components/generalHeader.js";
-import Modal from "../components/modal.js";
-import Table from "../components/table.js";
-import { Search } from "../../model/entities/Search.js";
+import LabeledInput from "../components/labeledInput.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const form = new Form({ title: "Inicio sesión" });
+  const form = new Form({ title: "Form" });
   form.setFields([
-    { title: "Usuario", required: true },
-    { title: "Correo", type: "email", required: true },
-    { title: "Edad", type: "number" },
+    { id: "nums", title: "Numero de serie", required: true },
+    { id: "modelo", title: "Modelo", required: true },
+    { id: "oem", title: "OEM", required: true },
   ]);
 
-  form.setButtons([
-    { text: "Aceptar", clases: ["btn", "btn-primary"], type: "summit" },
-    { id: "cancelar-btn", text: "Cancelar", clases: ["btn", "btn-danger"] },
-  ]);
+  form.setButtons([{ id: "crear-btn", text: "Crear equipo", type: "submit" }]);
 
-  const modal = new Modal<Form>({ content: form });
+  const btnCrear = form.getButton("crear-btn");
 
-  const showModal = new Button({
-    text: "Mostrar formulario",
-    clases: ["btn", "btn-success"],
+  btnCrear?.button.addEventListener("click", async (event) => {
+    //Evito que el formulario mande el método POST
+    event.preventDefault();
+
+    /* getField devuelve un LabeledInput o undefined, con
+     * as LabeledInput forzamos el tipo
+     */
+    const nums = form.getField("nums") as LabeledInput;
+    const modelo = form.getField("modelo") as LabeledInput;
+    const oem = form.getField("oem") as LabeledInput;
+
+    const nuevoEquipo: NewEquipement = {
+      serial_number: nums?.input.value.trim(),
+      model: modelo?.input.value.trim(),
+      oem_name: oem?.input.value.trim(),
+    };
+
+    const response = await fetch("http://localhost:3000/api/equipos", {
+      // Metodo a usar, GET, PUT, POST, DELETE
+      method: "POST",
+      headers: {
+        // indicar que mandamos el cuerpo en
+        // formato JSON
+        "Content-Type": "application/json",
+      },
+      // Formatear el objeto en texto para
+      // la solicitud
+      body: JSON.stringify(nuevoEquipo),
+    });
+
+    if (response.status >= 400) {
+      const error = JSON.parse(await response.text());
+      form.alert.message = error.message;
+      form.alert.visible = true;
+    } else {
+      console.log("to bien");
+      form.alert.visible = false;
+    }
   });
 
-  showModal.button.addEventListener("click", () => {
-    modal.show(true);
-  });
-
-  form.getButton("cancelar-btn")?.button.addEventListener("click", () => {
-    form.cleanFields();
-    modal.show(false);
-  });
-
-  const header = new GeneralHeader();
-
-  const equiposJSON = await fetch("http://localhost:3000/api/equipos", {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
-  const equipos: Search<Equipement> = JSON.parse(
-    await equiposJSON.text(),
-  ).search;
-  console.log(equipos);
-
-  const table = new Table();
-  table.title = "Equipos";
-  table.headers = ["Numero de serie", "Activo", "OEM", "Modelo"];
-  table.data = equipos.result;
-  table.container.classList.add("table");
-
-  Promise.all([
-    form.render(),
-    modal.render(),
-    header.render(),
-    table.render(),
-  ]).then();
-
-  document.body.appendChild(header.container);
-  document.body.appendChild(showModal.container);
-  document.body.appendChild(modal.container);
-  document.body.appendChild(table.container);
+  form.render();
+  document.body.appendChild(form.container);
 });
