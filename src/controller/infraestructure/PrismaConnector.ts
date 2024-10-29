@@ -1,4 +1,3 @@
-import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { IConnector } from "../use_cases/IConnector.js";
 import Config from "../../config.js";
@@ -8,8 +7,6 @@ export class PrismaConnector implements IConnector<PrismaClient> {
   private pool: PrismaClient[]; // Pool de conexiones
 
   constructor() {
-    dotenv.config(); // Carga las variables de entorno desde el archivo .env
-
     this.pool = [];
   }
 

@@ -9,7 +9,7 @@ import UserError from "../../model/entities/UserError.js";
 
 const repo: EquipementRepository = new PrismaEquipementRepo();
 
-export const isNewEquipementValid = async (
+const isNewEquipementValid = async (
   model: NewEquipement,
   adding: boolean,
 ): Promise<void> => {
@@ -37,16 +37,11 @@ export const isNewEquipementValid = async (
   }
 };
 
-export const isEquipementValid = async (model: Equipement): Promise<void> => {
+const isEquipementValid = async (model: Equipement): Promise<void> => {
   if (model.serial_number === "")
     throw new UserError("El número de serie no puede estar vacío");
 
-  const newModel: NewEquipement = {
-    serial_number: model.serial_number,
-    model: model.model,
-    oem_name: model.oem_name,
-  };
-
+  const newModel: NewEquipement = model;
   await isNewEquipementValid(newModel, false);
 };
 

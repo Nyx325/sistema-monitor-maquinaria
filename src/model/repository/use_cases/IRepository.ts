@@ -31,6 +31,16 @@ export interface IRepository<M, I> {
   update(model: M): Promise<void>;
 
   /**
+   * Recupera los modelos basados en criterios de busqueda, sin
+   * buscando coincidencias directas con el criterio, sin filtros LIKE
+   * o algo parecido
+   * @param criteria - Un objeto que contiene los criterios de búsqueda.
+   * @param pageNumber - El número de página para la paginación.
+   * @returns {Promise<Search<M>>} - Promesa que se resuelve con los resultados de búsqueda.
+   */
+  specificSearch(criteria: Partial<M>, pageNumber: number): Promise<Search<M>>;
+
+  /**
    * Recupera modelos basados en criterios de búsqueda y paginación.
    * @param criteria - Un objeto que contiene los criterios de búsqueda.
    * @param pageNumber - El número de página para la paginación.

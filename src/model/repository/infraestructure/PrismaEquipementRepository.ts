@@ -138,4 +138,40 @@ export class PrismaEquipementRepo implements EquipementRepository {
       if (conn !== null) this.connector.releaseConnection(conn);
     }
   }
+
+  async specificSearch(
+    criteria: Partial<Equipement>,
+    pageNumber: number,
+  ): Promise<Search<Equipement>> {
+    let conn: PrismaClient | null = null;
+    try {
+      conn = await this.connector.getConnection();
+
+      // Ejecutar las consultas de forma concurrente si no dependen entre sí
+      const [totalResults, results] = await Promise.all([
+        conn.equipement.count({
+          where: criteria,
+        }),
+        conn.equipement.findMany({
+          where: criteria,
+          skip: (pageNumber - 1) * Config.instance.pageSize, // Skip previous pages
+          take: Config.instance.pageSize, // Take only the results for the current page
+        }),
+      ]);
+
+      const totalPages = Math.ceil(totalResults / Config.instance.pageSize);
+
+      return {
+        totalPages: totalPages,
+        currentPage: pageNumber,
+        criteria: criteria,
+        result: results.length > 0 ? results : [],
+      };
+    } catch (error) {
+      console.error(`Repository: ${error}`);
+      throw error;
+    } finally {
+      if (conn !== null) this.connector.releaseConnection(conn);
+    }
+  }
 }
