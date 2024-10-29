@@ -33,4 +33,8 @@ router.get("/login", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/views/login.html"));
 });
 
+router.get("/equipos", (_request, response) => {
+  response.sendFile(path.join(__dirname, "../public/views/equipement.html"));
+});
+
 export default router;

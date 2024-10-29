@@ -1,3 +1,4 @@
+import { Search } from "../../model/entities/Search.js";
 import Component from "./component.js";
 
 /**
@@ -35,6 +36,8 @@ export default class Table extends Component {
 
   private update: (id: string) => void;
 
+  public lastSearch: Search<unknown>;
+
   /**
    * Crea una nueva instancia de `Table` con las opciones especificadas.
    *
@@ -46,7 +49,14 @@ export default class Table extends Component {
     if (opts.title !== undefined) this.title = opts.title; // Asigna el título si se proporciona.
     if (opts.headers !== undefined) this.headers = opts.headers; // Asigna los encabezados si se proporcionan.
     this.keyAttribute = "";
+    this.table.classList.add("table", "table-striped", "container");
 
+    this.lastSearch = {
+      currentPage: 1,
+      totalPages: 1,
+      criteria: {},
+      result: [],
+    };
     this.delete = async () => {};
     this.update = async () => {};
   }
@@ -85,32 +95,31 @@ export default class Table extends Component {
         dataRow.appendChild(cell);
       });
 
+      let td = document.createElement("td");
       const deleteBtn = document.createElement("button");
-      deleteBtn.innerHTML = `
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          class="icon icon-tabler icons-tabler-filled icon-tabler-trash-x"
-        >
-          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-          <path
-            d="M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007h16zm-9.489 5.14a1 1 0 0 0 -1.218 1.567l1.292 1.293l-1.292 1.293l-.083 .094a1 1 0 0 0 1.497 1.32l1.293 -1.292l1.293 1.292l.094 .083a1 1 0 0 0 1.32 -1.497l-1.292 -1.293l1.292 -1.293l.083 -.094a1 1 0 0 0 -1.497 -1.32l-1.293 1.292l-1.293 -1.292l-.094 -.083z"
-          />
-          <path
-            d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005h4z"
-          />
-        </svg>
-      `;
+      deleteBtn.classList.add("btn", "btn-danger", "mb-1");
+      deleteBtn.innerHTML = `<i class="fa fa-trash"></i>`;
 
       deleteBtn.setAttribute("key", String(rowData[this.keyAttribute]));
       deleteBtn.addEventListener("click", () => {
         const id = deleteBtn.getAttribute("key") as string;
         this.delete(id);
       });
-      dataRow.appendChild(deleteBtn);
+
+      td.appendChild(deleteBtn);
+      dataRow.appendChild(td);
+
+      td = document.createElement("td");
+      const modifyBtn = document.createElement("button");
+      modifyBtn.classList.add("btn", "btn-primary", "mb-1");
+      modifyBtn.innerHTML = '<i class="fa fa-pencil"></i>';
+      modifyBtn.setAttribute("key", String(rowData[this.keyAttribute]));
+      modifyBtn.addEventListener("click", () => {
+        const id = deleteBtn.getAttribute("key") as string;
+        this.update(id);
+      });
+      td.appendChild(modifyBtn);
+      dataRow.appendChild(td);
 
       this.table.appendChild(dataRow); // Agrega la fila de datos a la tabla
     });
@@ -132,5 +141,9 @@ export default class Table extends Component {
 
   public deleteEvent(func: (id: string) => void) {
     this.delete = func;
+  }
+
+  public modifyEvent(func: (id: string) => void) {
+    this.update = func;
   }
 }

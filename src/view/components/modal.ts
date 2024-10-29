@@ -25,6 +25,9 @@ export default class Modal<C extends Component> extends Component {
   /** Componente que se muestra como contenido del modal. */
   public content: C;
 
+  /** Variable para almacenar temporalment el dato a modificar */
+  public element: { [key: string]: unknown } | undefined;
+
   /**
    * Crea una nueva instancia de `Modal` con las opciones especificadas.
    *
