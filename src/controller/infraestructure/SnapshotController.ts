@@ -14,8 +14,15 @@ const repo: ISnapshotRepository = new PrismaSnapshotRepository();
 const isNewSnapshotValid = async (snapshot: NewSnapshot) => {
   const msg = [];
 
+  if (!snapshot.snapshot_datetime) msg.push("no se definió una fecha");
   if (!snapshot.snapshot_version) msg.push("no se definió una version");
   if (!snapshot.serial_number) msg.push("no se definió un equipo");
+
+  if (
+    snapshot.snapshot_datetime &&
+    isNaN(new Date(snapshot.snapshot_datetime).getTime())
+  )
+    msg.push("El formato de la fecha no es válido");
 
   if (snapshot.serial_number) {
     const equipementRepo: IEquipementRepository = new PrismaEquipementRepo();
@@ -46,6 +53,7 @@ export const addSnapshot = async (
     if (error instanceof UserError) {
       res.status(400).json({ message: error.message });
     } else {
+      console.error("Error");
       console.error(error);
       res.status(500).json({ message: "Internal server error" });
     }
@@ -54,7 +62,22 @@ export const addSnapshot = async (
 
 export const updateSnapshot = async (req: Request, res: Response) => {
   try {
-    const snapshot: ApiSnapshot = req.body;
+    // const snapshot: ApiSnapshot = req.body;
+    const {
+      snapshot_id,
+      snapshot_datetime,
+      active,
+      snapshot_version,
+      serial_number,
+    } = req.body;
+
+    const snapshot: ApiSnapshot = {
+      snapshot_id,
+      snapshot_datetime: new Date(snapshot_datetime),
+      active,
+      snapshot_version,
+      serial_number,
+    };
 
     await isSnapshotValid(snapshot);
 
