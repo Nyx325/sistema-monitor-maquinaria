@@ -19,16 +19,12 @@ export default class PrismaSnapshotRepository implements ISnapshotRepository {
     let conn: PrismaClient | null = null;
     try {
       conn = await this.connector.getConnection();
-      console.log("AA");
-      conn.apiSnapshot.create({
-        data: model,
-      });
-      console.log("BB");
-    } catch (error) {
-      console.error(`Repository: ${error}`);
-      throw error;
+      await conn.apiSnapshot.create({ data: model });
+    } catch (e) {
+      console.error("Repository:", e);
+      throw e;
     } finally {
-      if (conn !== null) this.connector.releaseConnection(conn);
+      if (conn) this.connector.releaseConnection(conn);
     }
   }
 
@@ -46,7 +42,7 @@ export default class PrismaSnapshotRepository implements ISnapshotRepository {
       console.error(`Repository: ${error}`);
       throw error;
     } finally {
-      if (conn !== null) this.connector.releaseConnection(conn);
+      if (conn) this.connector.releaseConnection(conn);
     }
   }
 

@@ -40,11 +40,7 @@ export const addSnapshot = async (
     const snapshot: NewSnapshot = req.body;
     snapshot.snapshot_datetime = new Date();
     await isNewSnapshotValid(snapshot);
-
-    console.log("A");
     await repo.add(snapshot);
-    console.log("B");
-
     res.status(201).json({ message: "Snapshot creado con éxito" });
   } catch (error) {
     if (error instanceof UserError) {
