@@ -52,7 +52,7 @@ model Location {
   longitude           Float
   altitude            Float
   altitude_units      String   @db.Text
-  china_coordinate_id Float
+  china_coordinate_id Float?
   date_time           DateTime
   active              Boolean  @default(true)  
   snapshot_id         Int?     

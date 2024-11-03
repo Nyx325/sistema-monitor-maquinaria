@@ -5,16 +5,17 @@ import { Search } from "../../entities/Search.js";
  * de modelos.
  *
  * @template I - Tipo del identificador del modelo.
- * @template M - Tipo del modelo que extiende de la interfaz Model<I>.
+ * @template M - Tipo del modelo.
+ * @template M - Tipo del modelo.
  * puede omitir elementos como el ID, la flag booleana, etc.
  */
-export interface IRepository<M, I> {
+export interface IRepository<M, NM, I> {
   /**
    * Agrega un nuevo modelo al repositorio.
    * @param model - El modelo a agregar.
    * @returns {Promise<void>} - Promesa que se resuelve cuando la operación de adición se completa.
    */
-  add(model: M): Promise<void>;
+  add(model: NM): Promise<void>;
 
   /**
    * Realiza una eliminación logica del modelo.

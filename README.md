@@ -16,6 +16,7 @@ DATABASE_URL="mysql://USER:PWD@HOST:DBMS_PORT/DB_NAME"
 # Opcionales
 PORT=63000
 POOL_SIZE=5
+PAGE_SIZE=10
 ```
 
 Una vez configurado esto puedes ejecutar la

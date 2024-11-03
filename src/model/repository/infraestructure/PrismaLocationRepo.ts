@@ -1,19 +1,21 @@
-/*
 import { Location, PrismaClient } from "@prisma/client";
 import { IConnector } from "../../../controller/use_cases/IConnector.js";
 import { PrismaConnector } from "../../../controller/infraestructure/PrismaConnector.js";
 import { Search } from "../../entities/Search.js";
 import Config from "../../../config.js";
-import { LocationRepository } from "../use_cases/LocationRespository.js";
+import {
+  ILocationRepository,
+  NewLocation,
+} from "../use_cases/ILocationRespository.js";
 
-export class PrismaLocationRepo implements LocationRepository {
+export class PrismaLocationRepo implements ILocationRepository {
   private readonly connector: IConnector<PrismaClient>;
 
   constructor() {
     this.connector = new PrismaConnector();
   }
 
-  async add(model: Location): Promise<void> {
+  async add(model: NewLocation): Promise<void> {
     let conn: PrismaClient | null = null;
     try {
       conn = await this.connector.getConnection();
@@ -119,8 +121,8 @@ export class PrismaLocationRepo implements LocationRepository {
       if (conn !== null) this.connector.releaseConnection(conn);
     }
   }
-/*
-  async get(id: string): Promise<Location | undefined> {
+
+  public async get(id: number): Promise<Location | undefined> {
     let conn: PrismaClient | null = null;
 
     try {
@@ -129,7 +131,7 @@ export class PrismaLocationRepo implements LocationRepository {
       // Ejecutar las consultas de forma concurrente si no dependen entre sí
       const result = await conn.location.findFirst({
         where: {
-          serial_number: id,
+          location_id: id,
         },
       });
 
@@ -177,8 +179,4 @@ export class PrismaLocationRepo implements LocationRepository {
       if (conn !== null) this.connector.releaseConnection(conn);
     }
   }
-
-
 }
-
-    */

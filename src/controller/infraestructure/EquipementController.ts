@@ -3,11 +3,11 @@ import { Equipement } from "@prisma/client";
 import { PrismaEquipementRepo } from "../../model/repository/infraestructure/PrismaEquipementRepository.js";
 import {
   NewEquipement,
-  EquipementRepository,
-} from "../../model/repository/use_cases/EquipementRepository.js";
+  IEquipementRepository,
+} from "../../model/repository/use_cases/IEquipementRepository.js";
 import UserError from "../../model/entities/UserError.js";
 
-const repo: EquipementRepository = new PrismaEquipementRepo();
+const repo: IEquipementRepository = new PrismaEquipementRepo();
 
 const isNewEquipementValid = async (
   model: NewEquipement,
