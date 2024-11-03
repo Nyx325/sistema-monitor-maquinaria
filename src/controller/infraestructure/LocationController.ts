@@ -5,6 +5,7 @@ import {
 } from "../../model/repository/use_cases/ILocationRespository.js";
 import { PrismaLocationRepo } from "../../model/repository/infraestructure/PrismaLocationRepo.js";
 import UserError from "../../model/entities/UserError.js";
+import { Location } from "@prisma/client";
 
 const repo: ILocationRepository = new PrismaLocationRepo();
 

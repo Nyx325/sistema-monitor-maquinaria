@@ -25,7 +25,6 @@ model Equipement {
 
 model ApiSnapshot {
   snapshot_id          Int          @id @default(autoincrement())
-  snapshot_total_pages Int
   snapshot_version     String       @db.Text
   snapshot_datetime    DateTime
   active               Boolean      @default(true)  
