@@ -37,4 +37,12 @@ router.get("/equipos", (_request, response) => {
   response.sendFile(path.join(__dirname, "../public/views/equipement.html"));
 });
 
+router.get("/localizacion", (_request, response) => {
+  response.sendFile(path.join(__dirname, "../public/views/localizacion.html"));
+});
+
+router.get("/login", (_request, response) => {
+  response.sendFile(path.join(__dirname, "../public/views/login.html"));
+});
+
 export default router;
