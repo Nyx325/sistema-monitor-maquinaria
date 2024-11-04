@@ -15,7 +15,7 @@ export interface IRepository<M, NM, I> {
    * @param model - El modelo a agregar.
    * @returns {Promise<void>} - Promesa que se resuelve cuando la operación de adición se completa.
    */
-  add(model: NM): Promise<void>;
+  add(model: NM): Promise<M>;
 
   /**
    * Realiza una eliminación logica del modelo.

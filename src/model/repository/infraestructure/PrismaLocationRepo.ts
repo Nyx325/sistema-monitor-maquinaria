@@ -7,19 +7,24 @@ import {
   ILocationRepository,
   NewLocation,
 } from "../use_cases/ILocationRespository.js";
+import { ISnapshotRepository } from "../use_cases/ISnapshotRepository.js";
+import PrismaSnapshotRepository from "./PrismaSnapshotRepository.js";
 
 export class PrismaLocationRepo implements ILocationRepository {
+  private readonly snapshotRepo: ISnapshotRepository;
   private readonly connector: IConnector<PrismaClient>;
 
   constructor() {
     this.connector = new PrismaConnector();
+    this.snapshotRepo = new PrismaSnapshotRepository();
   }
 
-  async add(model: NewLocation): Promise<void> {
+  async add(model: NewLocation): Promise<Location> {
     let conn: PrismaClient | null = null;
     try {
       conn = await this.connector.getConnection();
-      await conn.location.create({ data: model });
+      const record = await conn.location.create({ data: model });
+      return record;
     } catch (error) {
       console.error(`Repository: ${error}`);
       throw error;

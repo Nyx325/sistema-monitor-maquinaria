@@ -12,11 +12,12 @@ export class PrismaEquipementRepo implements IEquipementRepository {
     this.connector = new PrismaConnector();
   }
 
-  async add(model: Equipement): Promise<void> {
+  async add(model: Equipement): Promise<Equipement> {
     let conn: PrismaClient | null = null;
     try {
       conn = await this.connector.getConnection();
-      await conn.equipement.create({ data: model });
+      const record = await conn.equipement.create({ data: model });
+      return record;
     } catch (error) {
       console.error(`Repository: ${error}`);
       throw error;

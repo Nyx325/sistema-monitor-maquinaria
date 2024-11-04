@@ -5,60 +5,99 @@ import {
 } from "../../model/repository/use_cases/ILocationRespository.js";
 import { PrismaLocationRepo } from "../../model/repository/infraestructure/PrismaLocationRepo.js";
 import UserError from "../../model/entities/UserError.js";
-import { Location } from "@prisma/client";
+import { validateDate, validateFloat } from "./CommonController.js";
+import { IEquipementRepository } from "../../model/repository/use_cases/IEquipementRepository.js";
+import { PrismaEquipementRepo } from "../../model/repository/infraestructure/PrismaEquipementRepository.js";
+import { ISnapshotRepository } from "../../model/repository/use_cases/ISnapshotRepository.js";
+import PrismaSnapshotRepository from "../../model/repository/infraestructure/PrismaSnapshotRepository.js";
+import { ApiSnapshot, Equipement } from "@prisma/client";
 
+const snapshotRepo: ISnapshotRepository = new PrismaSnapshotRepository();
+const equipementRepo: IEquipementRepository = new PrismaEquipementRepo();
 const repo: ILocationRepository = new PrismaLocationRepo();
 
-// Validación de `NewLocation`
-const isNewLocationValid = (l: Partial<NewLocation>) => {
-  const msg: string[] = [];
+const isNewLocationValid = async (r: Request): Promise<NewLocation> => {
+  const {
+    latitude,
+    longitude,
+    altitude,
+    altitude_units,
+    china_coordinate_id,
+    date_time,
+    serial_number,
+  } = r.body;
 
-  const titles: { [key in keyof NewLocation]?: string } = {
-    latitude: "latitud",
-    longitude: "longitud",
-    altitude: "altitud",
-    altitude_units: "unidades de la altitud",
-    date_time: "fecha del registro",
-  };
+  const msgErr: string[] = [];
+  const location: Partial<NewLocation> = {};
 
-  if (!l) {
-    throw new UserError("Datos de la localización no proporcionados");
+  // Validar cada campo numérico usando validateFloat
+  const latitudeValidation = validateFloat({
+    input: latitude,
+    valueName: "latitude",
+  });
+
+  if (latitudeValidation.msg) msgErr.push(latitudeValidation.msg);
+  else location.latitude = latitudeValidation.number;
+
+  const longitudeValidation = validateFloat({
+    input: longitude,
+    valueName: "longitude",
+  });
+
+  if (longitudeValidation.msg) msgErr.push(longitudeValidation.msg);
+  else location.longitude = longitudeValidation.number;
+
+  const altitudeValidation = validateFloat({
+    input: altitude,
+    valueName: "altitude",
+  });
+
+  if (altitudeValidation.msg) msgErr.push(altitudeValidation.msg);
+  else location.altitude = altitudeValidation.number;
+
+  if (location.china_coordinate_id) {
+    const chinaCoordinateIdValidation = validateFloat({
+      input: china_coordinate_id,
+      valueName: "china_coordinate_id",
+    });
+
+    if (chinaCoordinateIdValidation.msg)
+      msgErr.push(chinaCoordinateIdValidation.msg);
+    else location.china_coordinate_id = chinaCoordinateIdValidation.number;
   }
 
-  for (const key in titles) {
-    const title = titles[key as keyof NewLocation];
-    const value = l[key as keyof NewLocation];
+  // Validación adicional para campos no numéricos
+  if (!altitude_units) msgErr.push("altitude_units es requerido");
+  else location.altitude_units = altitude_units;
 
-    // Excluir china_coordinate_id de la validación de campo requerido
-    if (key === "china_coordinate_id") continue;
+  const dateValidation = validateDate(date_time);
 
-    // Validar que los campos requeridos no sean null o undefined
-    if (value == null) {
-      msg.push(`Campo ${title} no proporcionado`);
+  if (dateValidation.msg) msgErr.push(dateValidation.msg);
+  else location.date_time = dateValidation.date;
+
+  if (!serial_number) {
+    msgErr.push("serial_number es requerido");
+  } else {
+    const equipement: Equipement | undefined =
+      await equipementRepo.get(serial_number);
+
+    if (!equipement) {
+      msgErr.push("Equipo no encontrado");
+    } else {
+      const snapshot: ApiSnapshot = await snapshotRepo.add({
+        serial_number,
+        snapshot_version: "1.0.0",
+        snapshot_datetime: new Date(),
+      });
+
+      location.snapshot_id = snapshot.snapshot_id;
     }
   }
 
-  if (l.altitude != null && isNaN(l.altitude))
-    msg.push("la altitud debe ser un número");
+  // Retorna errores o la estructura de location si es válida
+  if (msgErr.length > 0) throw new UserError(msgErr.join(", "));
 
-  if (l.latitude != null && isNaN(l.latitude))
-    msg.push("la latitud debe ser un número");
-
-  if (l.longitude != null && isNaN(l.longitude))
-    msg.push("la longitud debe ser un número");
-
-  if (l.china_coordinate_id != null && isNaN(l.china_coordinate_id))
-    msg.push("las coordenadas chinas deben ser un número");
-
-  // Validación del campo `date_time`
-  if (
-    (l.date_time && !(l.date_time instanceof Date)) ||
-    isNaN(l.date_time?.getTime() as number)
-  ) {
-    msg.push("La fecha del registro (date_time) es inválida");
-  }
-
-  if (msg.length > 0) throw new UserError(msg.join(", "));
+  return location as NewLocation;
 };
 
 // Controlador para agregar una nueva localización
@@ -67,35 +106,8 @@ export const addLocation = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const location = req.body;
-
-    // Parseo y conversión de `date_time` a Date
-    if (
-      typeof location.date_time === "string" &&
-      Date.parse(location.date_time)
-    ) {
-      location.date_time = new Date(location.date_time);
-    } else {
-      throw new UserError(
-        "El campo date_time debe ser una fecha válida en formato ISO",
-      );
-    }
-
-    // Validación de la localización
-    isNewLocationValid(location);
-
-    // Creación del objeto `NewLocation` después de la validación
-    const newLocation: NewLocation = {
-      latitude: parseFloat(location.latitude),
-      longitude: parseFloat(location.longitude),
-      altitude: parseFloat(location.altitude),
-      altitude_units: location.altitude_units,
-      china_coordinate_id: location.china_coordinate_id ?? null,
-      date_time: location.date_time,
-    };
-
+    const newLocation = await isNewLocationValid(req);
     await repo.add(newLocation);
-
     res
       .status(201)
       .json({ message: "Registro de localización creado correctamente" });

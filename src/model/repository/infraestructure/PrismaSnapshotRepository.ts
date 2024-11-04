@@ -16,11 +16,12 @@ export default class PrismaSnapshotRepository implements ISnapshotRepository {
     this.connector = new PrismaConnector();
   }
 
-  async add(model: NewSnapshot): Promise<void> {
+  async add(model: NewSnapshot): Promise<ApiSnapshot> {
     let conn: PrismaClient | null = null;
     try {
       conn = await this.connector.getConnection();
-      await conn.apiSnapshot.create({ data: model });
+      const record = await conn.apiSnapshot.create({ data: model });
+      return record;
     } catch (e) {
       console.error("Repository:", e);
       throw e;
