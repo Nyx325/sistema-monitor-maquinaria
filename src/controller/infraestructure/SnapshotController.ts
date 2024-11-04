@@ -8,6 +8,7 @@ import { PrismaEquipementRepo } from "../../model/repository/infraestructure/Pri
 import UserError from "../../model/entities/UserError.js";
 import { ApiSnapshot } from "@prisma/client";
 import { Request, Response } from "express";
+import { validateInt } from "./CommonController.js";
 
 const repo: ISnapshotRepository = new PrismaSnapshotRepository();
 
@@ -107,7 +108,7 @@ export const deleteSnapshot = async (
 ): Promise<void> => {
   const { snapshotId } = req.params;
 
-  if (snapshotId) {
+  if (!snapshotId) {
     res.status(400).json({
       message: "No se proporcionó un ID",
     });
@@ -131,7 +132,7 @@ export const deleteSnapshot = async (
     }
 
     await repo.delete(snapshot);
-    res.status(200).json("Snapshot eliminada con éxito");
+    res.status(200).json({ message: "Snapshot eliminada con éxito" });
   } catch (e) {
     if (e instanceof UserError) {
       res.status(400).json({ message: e.message });
@@ -157,9 +158,13 @@ export const getSnapshotBy = async (
 
     const msg = [];
 
-    const pageNum = parseInt(pageNumber as string, 10);
-    if (isNaN(pageNum) || pageNum <= 0)
-      msg.push("El número de página debe ser un número positivo válido");
+    const pageValidation = validateInt({
+      input: pageNumber as string | undefined,
+      valueName: "Número de página",
+      positiveNumber: true,
+    });
+
+    if (pageValidation.msg !== undefined) msg.push(pageValidation.msg);
 
     if (snapshotDatetime && !dateValid(String(snapshotDatetime)))
       msg.push(`El formato de fecha "${snapshotDatetime}" no es válido`);
@@ -168,6 +173,8 @@ export const getSnapshotBy = async (
       res.status(404).json({ message: msg.join(", ") });
       return;
     }
+
+    const pageNum = pageValidation.number as number;
 
     const date = snapshotDatetime
       ? new Date(String(snapshotDatetime))
@@ -196,6 +203,44 @@ export const getSnapshotBy = async (
       res.status(400).json({ message: e.message });
     } else {
       console.error(e);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+};
+
+export const getSnapshot = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { snapshotId } = req.params;
+
+    if (!snapshotId) {
+      res.status(400).json({
+        message: "No se proporcionó un ID",
+      });
+      return;
+    }
+
+    const validation = validateInt({
+      input: snapshotId,
+      positiveNumber: false,
+      valueName: "Snapshot id",
+    });
+
+    if (validation.msg !== undefined) throw new UserError(validation.msg);
+
+    const id = validation.number as number;
+
+    const result = await repo.get(id);
+    if (result === undefined)
+      res.status(404).json({ message: "No se encontró el equipo" });
+    else res.status(200).json(result);
+  } catch (error) {
+    if (error instanceof UserError) {
+      res.status(400).json({ message: error.message });
+    } else {
+      console.error(error);
       res.status(500).json({ message: "Internal server error" });
     }
   }

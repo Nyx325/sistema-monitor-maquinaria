@@ -55,7 +55,9 @@ export default class PrismaSnapshotRepository implements ISnapshotRepository {
         where: {
           snapshot_id: model.snapshot_id,
         },
-        data: model,
+        data: {
+          active: false,
+        },
       });
     } catch (error) {
       console.error(`Repository: ${error}`);
