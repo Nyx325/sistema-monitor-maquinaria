@@ -211,7 +211,7 @@ export const getEquipementBy = async (
 
     if (!result || result.result.length === 0) {
       res.status(404).json({
-        message: "No encontramos ningún equipo con esos filtros.",
+        message: "No se encontró ningún equipo con esos filtros.",
       });
 
       return;

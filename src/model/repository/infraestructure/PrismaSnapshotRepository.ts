@@ -7,6 +7,7 @@ import { PrismaConnector } from "../../../controller/infraestructure/PrismaConne
 import { ApiSnapshot, PrismaClient } from "@prisma/client";
 import { Search } from "../../entities/Search.js";
 import Config from "../../../config.js";
+import { Prisma } from "@prisma/client";
 
 export default class PrismaSnapshotRepository implements ISnapshotRepository {
   private readonly connector: IConnector<PrismaClient>;
@@ -72,6 +73,42 @@ export default class PrismaSnapshotRepository implements ISnapshotRepository {
     try {
       conn = await this.connector.getConnection();
 
+      let dateFilter: Prisma.DateTimeFilter | undefined;
+
+      if (criteria.snapshot_datetime) {
+        const snapshotD = criteria.snapshot_datetime;
+
+        // Define el inicio y el final del día especificado en snapshotD
+        const startOfDay = new Date(
+          Date.UTC(
+            snapshotD.getUTCFullYear(),
+            snapshotD.getUTCMonth(),
+            snapshotD.getUTCDate(),
+            0,
+            0,
+            0,
+            0, // Inicio del día
+          ),
+        );
+
+        const endOfDay = new Date(
+          Date.UTC(
+            snapshotD.getUTCFullYear(),
+            snapshotD.getUTCMonth(),
+            snapshotD.getUTCDate(),
+            23,
+            59,
+            59,
+            999, // Fin del día
+          ),
+        );
+
+        dateFilter = {
+          gte: startOfDay,
+          lte: endOfDay,
+        };
+      }
+
       // Ejecutar las consultas de forma concurrente si no dependen entre sí
       const [totalResults, results] = await Promise.all([
         conn.apiSnapshot.count({
@@ -79,7 +116,7 @@ export default class PrismaSnapshotRepository implements ISnapshotRepository {
             snapshot_version: criteria.snapshot_version
               ? { contains: criteria.snapshot_version }
               : undefined,
-            snapshot_datetime: criteria.snapshot_datetime,
+            snapshot_datetime: dateFilter,
             active: criteria.active,
             serial_number: criteria.serial_number
               ? { contains: criteria.serial_number }
@@ -91,7 +128,7 @@ export default class PrismaSnapshotRepository implements ISnapshotRepository {
             snapshot_version: criteria.snapshot_version
               ? { contains: criteria.snapshot_version }
               : undefined,
-            snapshot_datetime: criteria.snapshot_datetime,
+            snapshot_datetime: dateFilter,
             active: criteria.active,
             serial_number: criteria.serial_number
               ? { contains: criteria.serial_number }

@@ -11,6 +11,11 @@ import { Request, Response } from "express";
 
 const repo: ISnapshotRepository = new PrismaSnapshotRepository();
 
+const dateValid = (dateStr: string | Date) => {
+  const date: Date = dateStr instanceof Date ? dateStr : new Date(dateStr);
+  return !isNaN(new Date(date).getTime());
+};
+
 const isNewSnapshotValid = async (snapshot: NewSnapshot) => {
   const msg = [];
 
@@ -18,11 +23,10 @@ const isNewSnapshotValid = async (snapshot: NewSnapshot) => {
   if (!snapshot.snapshot_version) msg.push("no se definió una version");
   if (!snapshot.serial_number) msg.push("no se definió un equipo");
 
-  if (
-    snapshot.snapshot_datetime &&
-    isNaN(new Date(snapshot.snapshot_datetime).getTime())
-  )
-    msg.push("El formato de la fecha no es válido");
+  if (snapshot.snapshot_datetime && dateValid(snapshot.snapshot_datetime))
+    msg.push(
+      `El formato de fecha "${snapshot.snapshot_datetime}" no es válido`,
+    );
 
   if (snapshot.serial_number) {
     const equipementRepo: IEquipementRepository = new PrismaEquipementRepo();
@@ -92,6 +96,106 @@ export const updateSnapshot = async (req: Request, res: Response) => {
       res.status(400).json({ message: error.message });
     } else {
       console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+};
+
+export const deleteSnapshot = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const { snapshotId } = req.params;
+
+  if (snapshotId) {
+    res.status(400).json({
+      message: "No se proporcionó un ID",
+    });
+    return;
+  }
+
+  const id: number = Number(snapshotId);
+  if (isNaN(id)) {
+    res.status(400).json({
+      message: "El id debe ser un número",
+    });
+    return;
+  }
+
+  try {
+    const snapshot = await repo.get(id);
+
+    if (!snapshot) {
+      res.status(404).json({ message: "Snapshot no encontrada" });
+      return;
+    }
+
+    await repo.delete(snapshot);
+    res.status(200).json("Snapshot eliminada con éxito");
+  } catch (e) {
+    if (e instanceof UserError) {
+      res.status(400).json({ message: e.message });
+    } else {
+      console.error(e);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+};
+
+export const getSnapshotBy = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const {
+      snapshotVersion,
+      snapshotDatetime,
+      active,
+      serialNumber,
+      pageNumber = "1",
+    } = req.query;
+
+    const msg = [];
+
+    const pageNum = parseInt(pageNumber as string, 10);
+    if (isNaN(pageNum) || pageNum <= 0)
+      msg.push("El número de página debe ser un número positivo válido");
+
+    if (snapshotDatetime && !dateValid(String(snapshotDatetime)))
+      msg.push(`El formato de fecha "${snapshotDatetime}" no es válido`);
+
+    if (msg.length > 0) {
+      res.status(404).json({ message: msg.join(", ") });
+      return;
+    }
+
+    const date = snapshotDatetime
+      ? new Date(String(snapshotDatetime))
+      : undefined;
+
+    const criteria: Partial<ApiSnapshot> = {
+      active: active ? active !== "false" : undefined,
+      serial_number: serialNumber ? String(serialNumber) : undefined,
+      snapshot_version: snapshotVersion ? String(snapshotVersion) : undefined,
+      snapshot_datetime: date,
+    };
+
+    const result = await repo.getBy(criteria, pageNum);
+
+    if (!result || result.result.length === 0) {
+      res.status(404).json({
+        message: "No encontramos ningún equipo con esos filtros.",
+      });
+
+      return;
+    }
+
+    res.status(200).json(result);
+  } catch (e) {
+    if (e instanceof UserError) {
+      res.status(400).json({ message: e.message });
+    } else {
+      console.error(e);
       res.status(500).json({ message: "Internal server error" });
     }
   }
