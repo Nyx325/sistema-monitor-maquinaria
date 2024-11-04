@@ -1,45 +1,42 @@
-import { Location, PrismaClient } from "@prisma/client";
 import { IConnector } from "../../../controller/use_cases/IConnector.js";
+import {
+  ISnapshotRepository,
+  NewSnapshot,
+} from "../use_cases/ISnapshotRepository.js";
 import { PrismaConnector } from "../../../controller/infraestructure/PrismaConnector.js";
+import { ApiSnapshot, PrismaClient } from "@prisma/client";
 import { Search } from "../../entities/Search.js";
 import Config from "../../../config.js";
-import {
-  ILocationRepository,
-  NewLocation,
-} from "../use_cases/ILocationRespository.js";
-import { ISnapshotRepository } from "../use_cases/ISnapshotRepository.js";
-import PrismaSnapshotRepository from "./PrismaSnapshotRepository.js";
+import { Prisma } from "@prisma/client";
 
-export class PrismaLocationRepo implements ILocationRepository {
-  private readonly snapshotRepo: ISnapshotRepository;
+export default class PrismaSnapshotRepository implements ISnapshotRepository {
   private readonly connector: IConnector<PrismaClient>;
 
   constructor() {
     this.connector = new PrismaConnector();
-    this.snapshotRepo = new PrismaSnapshotRepository();
   }
 
-  async add(model: NewLocation): Promise<Location> {
+  async add(model: NewSnapshot): Promise<ApiSnapshot> {
     let conn: PrismaClient | null = null;
     try {
       conn = await this.connector.getConnection();
-      const record = await conn.location.create({ data: model });
+      const record = await conn.apiSnapshot.create({ data: model });
       return record;
-    } catch (error) {
-      console.error(`Repository: ${error}`);
-      throw error;
+    } catch (e) {
+      console.error("Repository:", e);
+      throw e;
     } finally {
-      if (conn !== null) this.connector.releaseConnection(conn);
+      if (conn) this.connector.releaseConnection(conn);
     }
   }
 
-  async update(model: Location): Promise<void> {
+  async update(model: ApiSnapshot): Promise<void> {
     let conn: PrismaClient | null = null;
     try {
       conn = await this.connector.getConnection();
-      await conn.location.update({
+      await conn.apiSnapshot.update({
         where: {
-          location_id: model.location_id,
+          snapshot_id: model.snapshot_id,
         },
         data: model,
       });
@@ -47,17 +44,17 @@ export class PrismaLocationRepo implements ILocationRepository {
       console.error(`Repository: ${error}`);
       throw error;
     } finally {
-      if (conn !== null) this.connector.releaseConnection(conn);
+      if (conn) this.connector.releaseConnection(conn);
     }
   }
 
-  async delete(model: Location): Promise<void> {
+  async delete(model: ApiSnapshot): Promise<void> {
     let conn: PrismaClient | null = null;
     try {
       conn = await this.connector.getConnection();
-      await conn.location.update({
+      await conn.apiSnapshot.update({
         where: {
-          location_id: model.location_id,
+          snapshot_id: model.snapshot_id,
         },
         data: {
           active: false,
@@ -72,39 +69,73 @@ export class PrismaLocationRepo implements ILocationRepository {
   }
 
   async getBy(
-    criteria: Partial<Location>,
+    criteria: Partial<ApiSnapshot>,
     pageNumber: number,
-  ): Promise<Search<Location>> {
+  ): Promise<Search<ApiSnapshot>> {
     let conn: PrismaClient | null = null;
     try {
       conn = await this.connector.getConnection();
 
+      let dateFilter: Prisma.DateTimeFilter | undefined;
+
+      if (criteria.snapshot_datetime) {
+        const snapshotD = criteria.snapshot_datetime;
+
+        // Define el inicio y el final del día especificado en snapshotD
+        const startOfDay = new Date(
+          Date.UTC(
+            snapshotD.getUTCFullYear(),
+            snapshotD.getUTCMonth(),
+            snapshotD.getUTCDate(),
+            0,
+            0,
+            0,
+            0, // Inicio del día
+          ),
+        );
+
+        const endOfDay = new Date(
+          Date.UTC(
+            snapshotD.getUTCFullYear(),
+            snapshotD.getUTCMonth(),
+            snapshotD.getUTCDate(),
+            23,
+            59,
+            59,
+            999, // Fin del día
+          ),
+        );
+
+        dateFilter = {
+          gte: startOfDay,
+          lte: endOfDay,
+        };
+      }
+
       // Ejecutar las consultas de forma concurrente si no dependen entre sí
       const [totalResults, results] = await Promise.all([
-        conn.location.count({
+        conn.apiSnapshot.count({
           where: {
-            altitude: criteria.altitude,
-            latitude: criteria.latitude,
-            longitude: criteria.longitude,
-            altitude_units: criteria.altitude_units
-              ? { contains: criteria.altitude_units }
+            snapshot_version: criteria.snapshot_version
+              ? { contains: criteria.snapshot_version }
               : undefined,
-            snapshot_id: criteria.snapshot_id,
-            china_coordinate_id: criteria.china_coordinate_id,
+            snapshot_datetime: dateFilter,
             active: criteria.active,
+            serial_number: criteria.serial_number
+              ? { contains: criteria.serial_number }
+              : undefined,
           },
         }),
-        conn.location.findMany({
+        conn.apiSnapshot.findMany({
           where: {
-            altitude: criteria.altitude,
-            latitude: criteria.latitude,
-            longitude: criteria.longitude,
-            altitude_units: criteria.altitude_units
-              ? { contains: criteria.altitude_units }
+            snapshot_version: criteria.snapshot_version
+              ? { contains: criteria.snapshot_version }
               : undefined,
-            snapshot_id: criteria.snapshot_id,
-            china_coordinate_id: criteria.china_coordinate_id,
+            snapshot_datetime: dateFilter,
             active: criteria.active,
+            serial_number: criteria.serial_number
+              ? { contains: criteria.serial_number }
+              : undefined,
           },
           skip: (pageNumber - 1) * Config.instance.pageSize, // Skip previous pages
           take: Config.instance.pageSize, // Take only the results for the current page
@@ -127,16 +158,16 @@ export class PrismaLocationRepo implements ILocationRepository {
     }
   }
 
-  public async get(id: number): Promise<Location | undefined> {
+  async get(id: number): Promise<ApiSnapshot | undefined> {
     let conn: PrismaClient | null = null;
 
     try {
       conn = await this.connector.getConnection();
 
       // Ejecutar las consultas de forma concurrente si no dependen entre sí
-      const result = await conn.location.findFirst({
+      const result = await conn.apiSnapshot.findFirst({
         where: {
-          location_id: id,
+          snapshot_id: id,
         },
       });
 
@@ -150,20 +181,30 @@ export class PrismaLocationRepo implements ILocationRepository {
   }
 
   async specificSearch(
-    criteria: Partial<Location>,
+    criteria: Partial<ApiSnapshot>,
     pageNumber: number,
-  ): Promise<Search<Location>> {
+  ): Promise<Search<ApiSnapshot>> {
     let conn: PrismaClient | null = null;
     try {
       conn = await this.connector.getConnection();
 
       // Ejecutar las consultas de forma concurrente si no dependen entre sí
       const [totalResults, results] = await Promise.all([
-        conn.location.count({
-          where: criteria,
+        conn.apiSnapshot.count({
+          where: {
+            snapshot_version: criteria.snapshot_version,
+            snapshot_datetime: criteria.snapshot_datetime,
+            active: criteria.active,
+            serial_number: criteria.serial_number,
+          },
         }),
-        conn.location.findMany({
-          where: criteria,
+        conn.apiSnapshot.findMany({
+          where: {
+            snapshot_version: criteria.snapshot_version,
+            snapshot_datetime: criteria.snapshot_datetime,
+            active: criteria.active,
+            serial_number: criteria.serial_number,
+          },
           skip: (pageNumber - 1) * Config.instance.pageSize, // Skip previous pages
           take: Config.instance.pageSize, // Take only the results for the current page
         }),

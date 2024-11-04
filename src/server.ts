@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import apiRouter from "./api.js";
 import webRouter from "./app.js";
+import PrismaSnapshotRepository from "./model/repository/infraestructure/PrismaSnapshotRepository.js";
 
 dotenv.config();
 const PORT = process.env.PORT ?? 3000;

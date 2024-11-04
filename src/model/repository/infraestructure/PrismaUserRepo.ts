@@ -13,11 +13,12 @@ export class PrismaUserRepo implements UserRepository {
     this.connector = new PrismaConnector();
   }
 
-  async add(model: User): Promise<void> {
+  async add(model: User): Promise<User> {
     let conn: PrismaClient | null = null;
     try {
       conn = await this.connector.getConnection();
-      await conn.user.create({ data: model });
+      const record = await conn.user.create({ data: model });
+      return record;
     } catch (error) {
       console.error(`Repository: ${error}`);
       throw error;

@@ -1,22 +1,23 @@
 import { Equipement, PrismaClient } from "@prisma/client";
 import { IConnector } from "../../../controller/use_cases/IConnector.js";
-import { EquipementRepository } from "../use_cases/EquipementRepository.js";
+import { IEquipementRepository } from "../use_cases/IEquipementRepository.js";
 import { PrismaConnector } from "../../../controller/infraestructure/PrismaConnector.js";
 import { Search } from "../../entities/Search.js";
 import Config from "../../../config.js";
 
-export class PrismaEquipementRepo implements EquipementRepository {
+export class PrismaEquipementRepo implements IEquipementRepository {
   private readonly connector: IConnector<PrismaClient>;
 
   constructor() {
     this.connector = new PrismaConnector();
   }
 
-  async add(model: Equipement): Promise<void> {
+  async add(model: Equipement): Promise<Equipement> {
     let conn: PrismaClient | null = null;
     try {
       conn = await this.connector.getConnection();
-      await conn.equipement.create({ data: model });
+      const record = await conn.equipement.create({ data: model });
+      return record;
     } catch (error) {
       console.error(`Repository: ${error}`);
       throw error;
