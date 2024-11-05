@@ -8,18 +8,30 @@ import { Search } from "../adapters/models/search.js";
 document.addEventListener("DOMContentLoaded", async () => {
   // DECLARACION DE VARIABLES ""GLOBALES""
   const adapter: IEquipementAdapter = new EquipementAdapter();
+
   const serialNInput = document.getElementById(
     "serial-number-input",
   ) as HTMLInputElement;
-
   const modelInput = document.getElementById("model-input") as HTMLInputElement;
   const oemInput = document.getElementById("oem-input") as HTMLInputElement;
 
-  const addBtn = document.getElementById("add-equipement") as HTMLButtonElement;
   const aceptBtn = document.getElementById("acept-btn") as HTMLButtonElement;
   const cancelBtn = document.getElementById("cancel-btn") as HTMLButtonElement;
-  const modal = new Modal("equipement-modal");
 
+  const modal = new Modal("equipement-modal");
+  const activeTrue = document.getElementById("active-true") as HTMLInputElement;
+  const activeFalse = document.getElementById(
+    "active-false",
+  ) as HTMLInputElement;
+
+  const addBtn = document.getElementById("add-equipement") as HTMLButtonElement;
+  const updateBtn = document.getElementById(
+    "update-equipement",
+  ) as HTMLButtonElement;
+
+  const activitySection = document.getElementById(
+    "activity-section",
+  ) as HTMLElement;
   const alert = new Alert("equipement-alert");
   const table = new Table("equipement-records");
 
@@ -42,23 +54,44 @@ document.addEventListener("DOMContentLoaded", async () => {
       ];
     });
 
-    table.onGetRecordId((record) => {
-      return String(record.serial_number);
-    });
-
     table.lastSearch = search;
     console.log(search);
     console.log(table.lastSearch);
     table.render();
   }
 
-  function initModal() {
+  function initCrudBtns() {
     addBtn.addEventListener("click", () => {
+      serialNInput.disabled = false;
+      activitySection.classList.add("d-none");
       adding = true;
       modal.show(true);
     });
 
+    updateBtn.addEventListener("click", () => {
+      serialNInput.disabled = true;
+      activitySection.classList.remove("d-none");
+      adding = false;
+
+      const eq = table.lastSelected;
+
+      if (eq) {
+        serialNInput.value = String(eq.record.serial_number);
+        modelInput.value = String(eq.record.model);
+        oemInput.value = String(eq.record.oem_name);
+        setActivitySelection(eq.record.active as boolean);
+      }
+
+      modal.show(true);
+    });
+  }
+
+  function initModal() {
     cancelBtn.addEventListener("click", () => {
+      serialNInput.value = "";
+      oemInput.value = "";
+      modelInput.value = "";
+
       modal.show(false);
     });
   }
@@ -68,6 +101,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const serial_number = serialNInput.value.trim();
       const oem_name = oemInput.value.trim();
       const model = modelInput.value.trim();
+      const active = getActivitySelection();
 
       let response;
       if (adding) {
@@ -79,11 +113,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
         adding = false;
       } else {
-        response = await adapter.add({
+        response = await adapter.update({
           serial_number,
           model,
           oem_name,
-          active: true,
+          active: active ?? false,
         });
       }
 
@@ -120,8 +154,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  function getActivitySelection(): boolean | undefined {
+    if (activeTrue.checked) return true;
+    if (activeFalse.checked) return false;
+
+    return undefined; // Si ninguno está seleccionado, retorna null
+  }
+
+  function setActivitySelection(value: boolean): void {
+    if (value) {
+      activeTrue.checked = true;
+      activeFalse.checked = false;
+    } else {
+      activeTrue.checked = false;
+      activeFalse.checked = true;
+    }
+  }
+
   // LLAMADO A TODAS LAS FUNCIONES DE INICIALIZACION
   initTable().then();
   initModal();
+  initCrudBtns();
   initForm();
 });

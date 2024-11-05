@@ -14,8 +14,9 @@
       integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
       crossorigin="anonymous"
     />
-    <link href="css/style.css" rel="stylesheet" />
+
     <script type="module" src="/scripts/equipement.js"></script>
+
     <title>Equipos</title>
   </head>
   <body class="container">
@@ -35,19 +36,51 @@
           <label for="oem-input">Nombre del OEM</label>
           <input id="oem-input" type="text" name="" value="" />
         </div>
-        <div>
-          <p>Activo:</p>
-          <label> <input type="radio" name="opcion" value="true" /> Si </label>
-          <label> <input type="radio" name="opcion" value="false" /> No </label>
-        </div>
+        <section id="activity-section" class="d-none">
+          <div class="form-check">
+            <label class="form-check-label" for="active-true">Si</label>
+            <input
+              id="active-true"
+              type="radio"
+              name="opcion"
+              value="true"
+              class="form-check-input"
+            />
+          </div>
+          <div class="form-check">
+            <label class="form-check-label" for="active-false">No</label>
+            <input
+              id="active-false"
+              type="radio"
+              name="opcion"
+              value="false"
+              class="form-check-input"
+            />
+          </div>
+        </section>
 
-        <button id="acept-btn" type="button">Aceptar btn</button>
-        <button id="cancel-btn" type="button">Cancelar btn</button>
+        <button id="acept-btn" type="button" class="btn btn-success">
+          Aceptar btn
+        </button>
+        <button id="cancel-btn" type="button" class="btn btn-danger">
+          Cancelar btn
+        </button>
       </form>
     </dialog>
 
     <main>
-      <button id="add-equipement" type="button">Agregar equipo</button>
+      <div>
+        <button id="add-equipement" type="button" class="btn btn-success">
+          Agregar equipo
+        </button>
+
+        <button id="update-equipement" type="button" class="btn btn-primary">
+          Modificar equipo
+        </button>
+        <button id="delete-equipement" type="button" class="btn btn-danger">
+          Eliminar equipo
+        </button>
+      </div>
       <table id="equipement-records" class="table">
         <!--Registros generados dinamicamente-->
       </table>
