@@ -1,4 +1,3 @@
-import { Equipement } from "@prisma/client";
 import Modal from "../components/modal.js";
 import { Table } from "../components/table.js";
 import EquipementAdapter from "../adapters/infraestructure/EquipementAdapter.js";
@@ -41,6 +40,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         String(record.oem_name),
         String(record.model),
       ];
+    });
+
+    table.onGetRecordId((record) => {
+      return String(record.serial_number);
     });
 
     table.lastSearch = search;

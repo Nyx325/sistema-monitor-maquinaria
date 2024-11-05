@@ -5,6 +5,18 @@ export class Table {
   private title: string = "";
   private headers: string[] = [];
   public lastSearch: Search | undefined;
+  private _lastSelected:
+    | {
+        row: HTMLTableRowElement;
+        record: { [key: string]: unknown };
+      }
+    | undefined;
+
+  private getRecordId: (record: { [key: string]: unknown }) => string = (
+    record,
+  ) => {
+    return this.parseData(record)[0];
+  };
 
   private parseData: (record: { [key: string]: unknown }) => string[] = (
     record,
@@ -42,11 +54,28 @@ export class Table {
 
     this.lastSearch?.result.forEach((record) => {
       const recordRow = document.createElement("tr");
-      this.parseData(record).forEach((attribute) => {
+      const parsedRecord = this.parseData(record);
+
+      parsedRecord.forEach((attribute) => {
         const attributeCell = document.createElement("td");
         attributeCell.innerText = attribute;
         recordRow.appendChild(attributeCell);
       });
+
+      // Agregar evento de clic a la fila para asignar el valor a this._lastSelected
+      recordRow.addEventListener("click", () => {
+        this._lastSelected?.row.classList.remove("selected-row");
+
+        recordRow.classList.add("selected-row");
+
+        this._lastSelected = {
+          row: recordRow,
+          record,
+        };
+
+        console.log("Registro seleccionado:", this._lastSelected.record); // Verifica en consola
+      });
+
       this.table.appendChild(recordRow);
     });
   }
@@ -61,5 +90,9 @@ export class Table {
 
   public onParseData(func: (record: { [key: string]: unknown }) => string[]) {
     this.parseData = func;
+  }
+
+  public onGetRecordId(func: (record: { [key: string]: unknown }) => string) {
+    this.getRecordId = func;
   }
 }
