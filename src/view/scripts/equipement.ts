@@ -4,49 +4,83 @@ import EquipementAdapter from "../adapters/infraestructure/EquipementAdapter.js"
 import { IEquipementAdapter } from "../adapters/use_cases/IEquipementAdapter.js";
 import Alert from "../components/alert.js";
 import { Search } from "../adapters/models/search.js";
+import { Equipement } from "@prisma/client";
 
-document.addEventListener("DOMContentLoaded", async () => {
-  // DECLARACION DE VARIABLES ""GLOBALES""
-  const adapter: IEquipementAdapter = new EquipementAdapter();
+class EquipementView {
+  private adapter: IEquipementAdapter;
+  private serialNInput: HTMLInputElement;
+  private modelInput: HTMLInputElement;
+  private oemInput: HTMLInputElement;
+  private aceptBtn: HTMLButtonElement;
+  private cancelBtn: HTMLButtonElement;
+  private modal: Modal;
+  private activeTrue: HTMLInputElement;
+  private activeFalse: HTMLInputElement;
+  private addBtn: HTMLButtonElement;
+  private updateBtn: HTMLButtonElement;
+  private deleteBtn: HTMLButtonElement;
+  private activitySection: HTMLElement;
+  private alert: Alert;
+  private table: Table;
+  private adding: boolean = false;
 
-  const serialNInput = document.getElementById(
-    "serial-number-input",
-  ) as HTMLInputElement;
-  const modelInput = document.getElementById("model-input") as HTMLInputElement;
-  const oemInput = document.getElementById("oem-input") as HTMLInputElement;
+  constructor() {
+    this.adapter = new EquipementAdapter();
 
-  const aceptBtn = document.getElementById("acept-btn") as HTMLButtonElement;
-  const cancelBtn = document.getElementById("cancel-btn") as HTMLButtonElement;
+    // Asignación de elementos del DOM
+    this.serialNInput = document.getElementById(
+      "serial-number-input",
+    ) as HTMLInputElement;
+    this.modelInput = document.getElementById(
+      "model-input",
+    ) as HTMLInputElement;
+    this.oemInput = document.getElementById("oem-input") as HTMLInputElement;
 
-  const modal = new Modal("equipement-modal");
-  const activeTrue = document.getElementById("active-true") as HTMLInputElement;
-  const activeFalse = document.getElementById(
-    "active-false",
-  ) as HTMLInputElement;
+    this.aceptBtn = document.getElementById("acept-btn") as HTMLButtonElement;
+    this.cancelBtn = document.getElementById("cancel-btn") as HTMLButtonElement;
 
-  const addBtn = document.getElementById("add-equipement") as HTMLButtonElement;
-  const updateBtn = document.getElementById(
-    "update-equipement",
-  ) as HTMLButtonElement;
+    this.modal = new Modal("equipement-modal");
+    this.activeTrue = document.getElementById(
+      "active-true",
+    ) as HTMLInputElement;
+    this.activeFalse = document.getElementById(
+      "active-false",
+    ) as HTMLInputElement;
 
-  const activitySection = document.getElementById(
-    "activity-section",
-  ) as HTMLElement;
-  const alert = new Alert("equipement-alert");
-  const table = new Table("equipement-records");
+    this.addBtn = document.getElementById(
+      "add-equipement",
+    ) as HTMLButtonElement;
+    this.updateBtn = document.getElementById(
+      "update-equipement",
+    ) as HTMLButtonElement;
+    this.deleteBtn = document.getElementById(
+      "delete-equipement",
+    ) as HTMLButtonElement;
 
-  let adding = false;
+    this.activitySection = document.getElementById(
+      "activity-section",
+    ) as HTMLElement;
+    this.alert = new Alert("equipement-alert");
+    this.table = new Table("equipement-records");
 
-  // DECLARACION DE FUNCIONES
-  async function initTable(): Promise<void> {
-    table.setTitle("Equipos");
-    table.setHeaders(["Numero de serie", "OEM", "Modelo"]);
+    this.initialize();
+  }
 
-    const response = await adapter.getBy({ active: true }, 1);
+  private initialize(): void {
+    this.initTable().then();
+    this.initModal();
+    this.initCrudBtns();
+    this.initForm();
+  }
 
+  private async initTable(): Promise<void> {
+    this.table.setTitle("Equipos");
+    this.table.setHeaders(["Numero de serie", "OEM", "Modelo"]);
+
+    const response = await this.adapter.getBy({ active: true }, 1);
     const search: Search = JSON.parse(await response.text());
 
-    table.onParseData((record) => {
+    this.table.onParseData((record) => {
       return [
         String(record.serial_number),
         String(record.oem_name),
@@ -54,66 +88,67 @@ document.addEventListener("DOMContentLoaded", async () => {
       ];
     });
 
-    table.lastSearch = search;
-    console.log(search);
-    console.log(table.lastSearch);
-    table.render();
+    this.table.lastSearch = search;
+    this.table.render();
   }
 
-  function initCrudBtns() {
-    addBtn.addEventListener("click", () => {
-      serialNInput.disabled = false;
-      activitySection.classList.add("d-none");
-      adding = true;
-      modal.show(true);
+  private initCrudBtns(): void {
+    this.addBtn.addEventListener("click", () => {
+      this.serialNInput.disabled = false;
+      this.activitySection.classList.add("d-none");
+      this.adding = true;
+      this.modal.show(true);
     });
 
-    updateBtn.addEventListener("click", () => {
-      serialNInput.disabled = true;
-      activitySection.classList.remove("d-none");
-      adding = false;
+    this.updateBtn.addEventListener("click", () => {
+      const eq = this.table.lastSelected;
+      if (!eq) return;
 
-      const eq = table.lastSelected;
+      this.serialNInput.disabled = true;
+      this.activitySection.classList.remove("d-none");
+      this.adding = false;
 
-      if (eq) {
-        serialNInput.value = String(eq.record.serial_number);
-        modelInput.value = String(eq.record.model);
-        oemInput.value = String(eq.record.oem_name);
-        setActivitySelection(eq.record.active as boolean);
-      }
+      this.serialNInput.value = String(eq.record.serial_number);
+      this.modelInput.value = String(eq.record.model);
+      this.oemInput.value = String(eq.record.oem_name);
+      this.setActivitySelection(eq.record.active as boolean);
 
-      modal.show(true);
+      this.modal.show(true);
     });
-  }
 
-  function initModal() {
-    cancelBtn.addEventListener("click", () => {
-      serialNInput.value = "";
-      oemInput.value = "";
-      modelInput.value = "";
-
-      modal.show(false);
+    this.deleteBtn.addEventListener("click", () => {
+      const eq = this.table.lastSelected;
+      if (!eq) return;
+      this.adapter.delete(eq.record as Equipement);
+      this.reloadTable();
     });
   }
 
-  function initForm() {
-    aceptBtn.addEventListener("click", async () => {
-      const serial_number = serialNInput.value.trim();
-      const oem_name = oemInput.value.trim();
-      const model = modelInput.value.trim();
-      const active = getActivitySelection();
+  private initModal(): void {
+    this.cancelBtn.addEventListener("click", () => {
+      this.clearForm();
+      this.modal.show(false);
+    });
+  }
+
+  private initForm(): void {
+    this.aceptBtn.addEventListener("click", async () => {
+      const serial_number = this.serialNInput.value.trim();
+      const oem_name = this.oemInput.value.trim();
+      const model = this.modelInput.value.trim();
+      const active = this.getActivitySelection();
 
       let response;
-      if (adding) {
-        response = await adapter.add({
+      if (this.adding) {
+        response = await this.adapter.add({
           serial_number,
           model,
           oem_name,
           active: true,
         });
-        adding = false;
+        this.adding = false;
       } else {
-        response = await adapter.update({
+        response = await this.adapter.update({
           serial_number,
           model,
           oem_name,
@@ -123,57 +158,61 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (response.status >= 400) {
         const res = JSON.parse(await response.text());
-        alert.setMessage(res.message);
-        alert.setVisible(true);
+        this.alert.setMessage(res.message);
+        this.alert.setVisible(true);
       } else {
-        adding = false;
-        modal.show(false);
-
-        const reload = await adapter.getBy(
-          table.lastSearch?.criteria ?? {},
-          table.lastSearch?.currentPage ?? 1,
-        );
-
-        if (reload.status >= 400) {
-          const res = JSON.parse(await response.text());
-          console.error(res.message);
-
-          table.lastSearch = {
-            currentPage: 1,
-            totalPages: 1,
-            result: [],
-            criteria: {},
-          };
-        } else {
-          const search: Search = JSON.parse(await reload.text());
-          table.lastSearch = search;
-        }
-
-        table.render();
+        this.clearForm();
+        this.modal.show(false);
+        await this.reloadTable();
       }
+
+      this.clearForm();
     });
   }
 
-  function getActivitySelection(): boolean | undefined {
-    if (activeTrue.checked) return true;
-    if (activeFalse.checked) return false;
-
-    return undefined; // Si ninguno está seleccionado, retorna null
+  private clearForm(): void {
+    this.serialNInput.value = "";
+    this.oemInput.value = "";
+    this.modelInput.value = "";
   }
 
-  function setActivitySelection(value: boolean): void {
-    if (value) {
-      activeTrue.checked = true;
-      activeFalse.checked = false;
+  private async reloadTable(): Promise<void> {
+    const reload = await this.adapter.getBy(
+      this.table.lastSearch?.criteria ?? {},
+      this.table.lastSearch?.currentPage ?? 1,
+    );
+
+    if (reload.status >= 400) {
+      const res = JSON.parse(await reload.text());
+      console.error(res.message);
+
+      this.table.lastSearch = {
+        currentPage: 1,
+        totalPages: 1,
+        result: [],
+        criteria: {},
+      };
     } else {
-      activeTrue.checked = false;
-      activeFalse.checked = true;
+      const search: Search = JSON.parse(await reload.text());
+      this.table.lastSearch = search;
     }
+
+    this.table.render();
   }
 
-  // LLAMADO A TODAS LAS FUNCIONES DE INICIALIZACION
-  initTable().then();
-  initModal();
-  initCrudBtns();
-  initForm();
+  private getActivitySelection(): boolean | undefined {
+    if (this.activeTrue.checked) return true;
+    if (this.activeFalse.checked) return false;
+    return undefined;
+  }
+
+  private setActivitySelection(value: boolean): void {
+    this.activeTrue.checked = value;
+    this.activeFalse.checked = !value;
+  }
+}
+
+// Inicialización del manager cuando el DOM esté cargado
+document.addEventListener("DOMContentLoaded", () => {
+  new EquipementView();
 });

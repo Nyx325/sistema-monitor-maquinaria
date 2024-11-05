@@ -209,14 +209,6 @@ export const getEquipementBy = async (
 
     const result = await repo.getBy(criteria, pageNum);
 
-    if (!result || result.result.length === 0) {
-      res.status(404).json({
-        message: "No se encontró ningún equipo con esos filtros.",
-      });
-
-      return;
-    }
-
     // Respuesta exitosa
     res.status(200).json(result);
   } catch (error) {
