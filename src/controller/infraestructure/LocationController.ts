@@ -122,9 +122,37 @@ export const updateLocation = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const location: Location = req.body;
+    const {
+      snapshot_id,
+      active,
+      location_id,
+      latitude,
+      longitude,
+      altitude,
+      altitude_units,
+      china_coordinate_id,
+      date_time,
+    } = req.body;
 
     const msg = [];
+
+    const dateValidation = validateDate(date_time);
+    if (dateValidation.msg) {
+      msg.push("");
+    }
+
+    const location: Location = {
+      snapshot_id,
+      active,
+      location_id,
+      latitude,
+      longitude,
+      altitude,
+      altitude_units,
+      china_coordinate_id,
+      date_time,
+    };
+
     const keys = Object.keys(location) as Array<keyof Location>;
 
     for (const key of keys) {
@@ -151,10 +179,15 @@ export const updateLocation = async (
       }
     }
 
-    if (location.snapshot_id) {
-      const snapshot = await snapshotRepo.get(location.snapshot_id);
-    }
-    // await repo.update(location);
+    const original = await repo.get(location.location_id);
+
+    if (!original) throw new UserError("El registro a modificar no existe");
+
+    location.snapshot_id = original.snapshot_id;
+
+    //TODO: Considerar qué hacer con el cambio de snapshot_id
+
+    await repo.update(location);
     res
       .status(200)
       .json({ message: "Registro de localización actualizado correctamente" });

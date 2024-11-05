@@ -1,149 +1,65 @@
-import { Search } from "../../model/entities/Search.js";
-import Component from "./component.js";
+import { Search } from "../adapters/models/search.js";
 
-/**
- * Opciones de configuración para el componente `Table`.
- */
-export interface TableOptions {
-  /** Identificador único de la tabla (opcional). */
-  id?: string;
-  /** Título de la tabla que se mostrará en la cabecera. (opcional) */
-  title?: string;
-  /** Array de cadenas que representa los encabezados de la tabla (opcional). */
-  headers?: string[];
-}
+export class Table {
+  private readonly table: HTMLTableElement;
+  private title: string = "";
+  private headers: string[] = [];
+  public lastSearch: Search | undefined;
 
-/**
- * Clase `Table` que representa una tabla HTML que puede contener datos dinámicos.
- * Hereda de la clase base `Component`.
- */
-export default class Table extends Component {
-  /** Elemento HTML que representa la tabla. */
-  protected table: HTMLTableElement;
+  private parseData: (record: { [key: string]: unknown }) => string[] = (
+    record,
+  ) => {
+    const keys = Object.keys(record);
 
-  /** Título de la tabla. */
-  public title: string = "";
+    const recordParsed = [];
+    for (const key of keys) {
+      recordParsed.push(String(record[key]));
+    }
 
-  /** Encabezados de la tabla. */
-  public headers: string[] = [];
+    return recordParsed;
+  };
 
-  /** Datos que se mostrarán en la tabla. */
-  private data: { [key: string]: unknown }[] = [];
-
-  private keyAttribute: string;
-
-  private delete: (id: string) => void;
-
-  private update: (id: string) => void;
-
-  public lastSearch: Search<unknown>;
-
-  /**
-   * Crea una nueva instancia de `Table` con las opciones especificadas.
-   *
-   * @param opts - Opciones de configuración que incluyen el id, título y encabezados de la tabla.
-   */
-  constructor(opts: TableOptions = {}) {
-    super();
-    this.table = document.createElement("table");
-    if (opts.title !== undefined) this.title = opts.title; // Asigna el título si se proporciona.
-    if (opts.headers !== undefined) this.headers = opts.headers; // Asigna los encabezados si se proporcionan.
-    this.keyAttribute = "";
-    this.table.classList.add("table", "table-striped", "container");
-
-    this.lastSearch = {
-      currentPage: 1,
-      totalPages: 1,
-      criteria: {},
-      result: [],
-    };
-    this.delete = async () => {};
-    this.update = async () => {};
+  constructor(id: string) {
+    this.table = document.getElementById(id) as HTMLTableElement;
   }
 
-  /**
-   * Renderiza la tabla en el DOM.
-   * Crea la estructura HTML de la tabla, incluyendo el título, encabezados y filas de datos.
-   */
-  render(): void {
-    this.table.innerHTML = ""; // Limpia el contenido existente de la tabla.
+  public render(): void {
+    this.table.innerHTML = "";
 
-    // Crea una fila para el título de la tabla
     const titleRow = document.createElement("tr");
     const titleCell = document.createElement("th");
-    titleCell.innerText = this.title; // Establece el texto del título
-    titleCell.colSpan = this.headers.length; // Hacer que el título ocupe todas las columnas
+    titleCell.innerText = this.title;
     titleRow.appendChild(titleCell);
-    this.table.appendChild(titleRow); // Agrega la fila del título a la tabla
+    this.table.appendChild(titleRow);
 
-    // Crea una fila para los encabezados de la tabla
-    const headerRow = document.createElement("tr");
+    const headersRow = document.createElement("tr");
     this.headers.forEach((header) => {
-      const cell = document.createElement("th");
-      cell.innerText = header; // Establece el texto del encabezado
-      headerRow.appendChild(cell);
+      const headerCell = document.createElement("th");
+      headerCell.innerText = header;
+      headersRow.appendChild(headerCell);
     });
-    this.table.appendChild(headerRow); // Agrega la fila de encabezados a la tabla
+    this.table.appendChild(headersRow);
 
-    // Crea filas para los datos
-    this.data.forEach((rowData) => {
-      const dataRow = document.createElement("tr");
-
-      Object.keys(rowData).forEach((key) => {
-        const cell = document.createElement("td");
-        cell.innerText = String(rowData[key]); // Convierte el dato a texto y lo establece en la celda
-        dataRow.appendChild(cell);
+    this.lastSearch?.result.forEach((record) => {
+      const recordRow = document.createElement("tr");
+      this.parseData(record).forEach((attribute) => {
+        const attributeCell = document.createElement("td");
+        attributeCell.innerText = attribute;
+        recordRow.appendChild(attributeCell);
       });
-
-      let td = document.createElement("td");
-      const deleteBtn = document.createElement("button");
-      deleteBtn.classList.add("btn", "btn-danger", "mb-1");
-      deleteBtn.innerHTML = `<i class="fa fa-trash"></i>`;
-
-      deleteBtn.setAttribute("key", String(rowData[this.keyAttribute]));
-      deleteBtn.addEventListener("click", () => {
-        const id = deleteBtn.getAttribute("key") as string;
-        this.delete(id);
-      });
-
-      td.appendChild(deleteBtn);
-      dataRow.appendChild(td);
-
-      td = document.createElement("td");
-      const modifyBtn = document.createElement("button");
-      modifyBtn.classList.add("btn", "btn-primary", "mb-1");
-      modifyBtn.innerHTML = '<i class="fa fa-pencil"></i>';
-      modifyBtn.setAttribute("key", String(rowData[this.keyAttribute]));
-      modifyBtn.addEventListener("click", () => {
-        const id = deleteBtn.getAttribute("key") as string;
-        this.update(id);
-      });
-      td.appendChild(modifyBtn);
-      dataRow.appendChild(td);
-
-      this.table.appendChild(dataRow); // Agrega la fila de datos a la tabla
+      this.table.appendChild(recordRow);
     });
   }
 
-  /**
-   * Obtiene el contenedor de la tabla.
-   *
-   * @returns El elemento HTML que representa la tabla.
-   */
-  get container(): HTMLElement {
-    return this.table; // Retorna el elemento de la tabla
+  public setTitle(title: string) {
+    this.title = title;
   }
 
-  public setData(keyAttribute: string, data: { [key: string]: unknown }[]) {
-    this.data = data;
-    this.keyAttribute = keyAttribute;
+  public setHeaders(headers: string[]) {
+    this.headers = headers;
   }
 
-  public deleteEvent(func: (id: string) => void) {
-    this.delete = func;
-  }
-
-  public modifyEvent(func: (id: string) => void) {
-    this.update = func;
+  public onParseData(func: (record: { [key: string]: unknown }) => string[]) {
+    this.parseData = func;
   }
 }

@@ -21,6 +21,11 @@ router.use(
   express.static(path.join(__dirname, "../dist/view/components/")),
 );
 
+router.use(
+  "/adapters",
+  express.static(path.join(__dirname, "../dist/view/adapters/")),
+);
+
 router.get("/", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/views/index.html"));
 });
