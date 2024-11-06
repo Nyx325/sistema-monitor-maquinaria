@@ -5,7 +5,11 @@ import {
 } from "../../model/repository/use_cases/ILocationRespository.js";
 import { PrismaLocationRepo } from "../../model/repository/infraestructure/PrismaLocationRepo.js";
 import UserError from "../../model/entities/UserError.js";
-import { validateDate, validateFloat } from "./CommonController.js";
+import {
+  validateDate,
+  validateFloat,
+  validateInt,
+} from "./CommonController.js";
 import { IEquipementRepository } from "../../model/repository/use_cases/IEquipementRepository.js";
 import { PrismaEquipementRepo } from "../../model/repository/infraestructure/PrismaEquipementRepository.js";
 import { ISnapshotRepository } from "../../model/repository/use_cases/ISnapshotRepository.js";
@@ -197,6 +201,176 @@ export const updateLocation = async (
     } else {
       console.error(e);
       res.status(500).json({ message: "Ocurrió un error inesperado" });
+    }
+  }
+};
+
+export const deleteLocation = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const { locationId } = req.params; // Obtenemos el número de serie desde los parámetros de la URL
+
+  if (!locationId) {
+    res.status(400).json({
+      message: "No se proporcionó un ID",
+    });
+    return;
+  }
+
+  try {
+    const validation = validateInt({
+      input: locationId,
+      valueName: "localización",
+      positiveNumber: false,
+    });
+
+    if (validation.msg) {
+      res.status(400).json({ message: validation.msg });
+      return;
+    }
+
+    const record = await repo.get(validation.number as number);
+
+    if (record === undefined) {
+      res.status(404).json({ message: "Registro no encontrado" });
+      return;
+    }
+
+    // Elimina el equipo utilizando el número de serie
+    await repo.delete(record);
+    res.status(200).json({ message: "Registro eliminado con éxito" });
+  } catch (error) {
+    if (error instanceof UserError) {
+      res.status(400).json({ message: error.message });
+    } else {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+};
+
+export const getLocation = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { locationId } = req.params; // Obtenemos el número de serie desde los parámetros de la URL
+
+    if (!locationId) {
+      res.status(400).json({
+        message: "El ID no fue proporcionado",
+      });
+      return;
+    }
+
+    const validation = validateInt({
+      input: locationId,
+      valueName: "localización",
+      positiveNumber: false,
+    });
+
+    if (validation.msg) {
+      res.status(400).json({ message: validation.msg });
+      return;
+    }
+
+    const result = await repo.get(validation.number as number);
+
+    if (result === undefined)
+      res.status(404).json({ message: "No se encontró el equipo" });
+    else res.status(200).json(result);
+  } catch (error) {
+    if (error instanceof UserError) {
+      res.status(400).json({ message: error.message });
+    } else {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+};
+
+export const getLocationBy = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const {
+      active,
+      locationId,
+      latitude,
+      longitude,
+      altitude,
+      altitudeUnits,
+      chinaCoordinateId,
+      dateTime,
+      pageNumer = "1",
+    } = req.query;
+
+    const criterio = {
+      active: active !== "false",
+      location_id: locationId,
+      altitude,
+      latitude,
+      date_time: dateTime,
+      longitude,
+      snapshot_id: undefined,
+      altitude_units: altitudeUnits,
+      china_coordinate_id: chinaCoordinateId,
+    } as Partial<Location>;
+
+    const msg = [];
+
+    const validation = validateInt({
+      input: pageNumer as string,
+      valueName: "numero de página",
+      positiveNumber: true,
+    });
+
+    if (validation.msg) msg.push(validation.msg);
+    const page = validation.number;
+
+    const keys = Object.keys(criterio) as Array<keyof Partial<Location>>;
+
+    for (const key of keys) {
+      if (!criterio[key]) continue;
+
+      if (typeof criterio[key] === "number") {
+        const validation = validateFloat({
+          valueName: key,
+          input: String(criterio[key]),
+        });
+
+        if (validation.msg !== undefined) msg.push(validation.msg);
+      }
+
+      if (typeof criterio[key] === "number") {
+        const validation = validateFloat({
+          valueName: key,
+          input: String(criterio[key]),
+        });
+
+        if (validation.msg !== undefined) msg.push(validation.msg);
+        continue;
+      }
+
+      if (key === "date_time") {
+        const validation = validateDate(String(criterio[key]));
+        if (validation.msg !== undefined) msg.push(validation.msg);
+        continue;
+      }
+    }
+
+    if (msg.length > 0) throw new UserError(msg.join(", "));
+
+    const result = await repo.getBy(criterio, page as number);
+    res.status(200).json(result);
+  } catch (e) {
+    if (e instanceof UserError) {
+      res.status(400).json({ message: e.message });
+    } else {
+      console.error(e);
+      res.status(500).json({ message: "Internal server error" });
     }
   }
 };

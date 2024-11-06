@@ -1,13 +1,11 @@
 import Modal from "../components/modal.js";
 import { Table } from "../components/table.js";
-import EquipementAdapter from "../adapters/infraestructure/EquipementAdapter.js";
-import { IEquipementAdapter } from "../adapters/use_cases/IEquipementAdapter.js";
 import Alert from "../components/alert.js";
 import { Search } from "../adapters/models/search.js";
-import { Equipement } from "@prisma/client";
+import { EquipementAdapter } from "../adapters/infraestructure/EquipementAdapter.js";
 
 class EquipementView {
-  private adapter: IEquipementAdapter;
+  private adapter: EquipementAdapter;
   private serialNInput: HTMLInputElement;
   private modelInput: HTMLInputElement;
   private oemInput: HTMLInputElement;
@@ -119,7 +117,7 @@ class EquipementView {
     this.deleteBtn.addEventListener("click", () => {
       const eq = this.table.lastSelected;
       if (!eq) return;
-      this.adapter.delete(eq.record as Equipement);
+      this.adapter.delete(eq.record.serial_number as string);
       this.reloadTable();
     });
   }

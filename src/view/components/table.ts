@@ -46,32 +46,32 @@ export class Table {
     });
     this.table.appendChild(headersRow);
 
-    this.lastSearch?.result.forEach((record) => {
-      const recordRow = document.createElement("tr");
-      const parsedRecord = this.parseData(record);
+    if (this.lastSearch) {
+      this.lastSearch?.result.forEach((record) => {
+        const recordRow = document.createElement("tr");
+        const parsedRecord = this.parseData(record);
 
-      parsedRecord.forEach((attribute) => {
-        const attributeCell = document.createElement("td");
-        attributeCell.innerText = attribute;
-        recordRow.appendChild(attributeCell);
+        parsedRecord.forEach((attribute) => {
+          const attributeCell = document.createElement("td");
+          attributeCell.innerText = attribute;
+          recordRow.appendChild(attributeCell);
+        });
+
+        // Agregar evento de clic a la fila para asignar el valor a this._lastSelected
+        recordRow.addEventListener("click", () => {
+          this.lastSelected?.row.classList.remove("selected-row");
+
+          recordRow.classList.add("selected-row");
+
+          this.lastSelected = {
+            row: recordRow,
+            record,
+          };
+        });
+
+        this.table.appendChild(recordRow);
       });
-
-      // Agregar evento de clic a la fila para asignar el valor a this._lastSelected
-      recordRow.addEventListener("click", () => {
-        this.lastSelected?.row.classList.remove("selected-row");
-
-        recordRow.classList.add("selected-row");
-
-        this.lastSelected = {
-          row: recordRow,
-          record,
-        };
-
-        console.log("Registro seleccionado:", this.lastSelected.record); // Verifica en consola
-      });
-
-      this.table.appendChild(recordRow);
-    });
+    }
   }
 
   public setTitle(title: string) {

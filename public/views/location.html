@@ -15,11 +15,13 @@
       crossorigin="anonymous"
     ></script>
 
+    <script type="module" src="/scripts/location.js"></script>
+
     <title>Localizacion</title>
   </head>
   <body class="container">
-    <dialog id="equipement-modal" class="container">
-      <div id="equipement-alert" class="alert alert-danger d-none"></div>
+    <dialog id="location-modal" class="container">
+      <div id="location-alert" class="alert alert-danger d-none"></div>
       <form class="container">
         <legend id="form-title">Agregar equipo</legend>
         <div>
@@ -76,14 +78,14 @@
 
     <main>
       <div>
-        <button id="add-equipement" type="button" class="btn btn-success">
+        <button id="add-location" type="button" class="btn btn-success">
           Agregar
         </button>
 
-        <button id="update-equipement" type="button" class="btn btn-primary">
+        <button id="update-location" type="button" class="btn btn-primary">
           Modificar
         </button>
-        <button id="delete-equipement" type="button" class="btn btn-danger">
+        <button id="delete-location" type="button" class="btn btn-danger">
           Eliminar
         </button>
       </div>
