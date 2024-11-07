@@ -1,18 +1,22 @@
 import { Table } from "../components/table.js";
-import LocationAdapter from "../adapters/infraestructure/LocationAdapter.js";
-import { Search } from "../adapters/models/search.js";
+import { Search } from "../adapters/Search.js";
+import { Adapter } from "../adapters/Adapter.js";
 import Modal from "../components/modal.js";
+import Alert from "../components/alert.js";
 
 class LocationView {
   private form: {
+    alert: Alert;
     legend: HTMLLegendElement;
     adding: boolean;
     inputs: {
+      serialNumber: HTMLInputElement;
       longitude: HTMLInputElement;
       latitude: HTMLInputElement;
       altitude: HTMLInputElement;
       altitudeUnits: HTMLInputElement;
       chinaId: HTMLInputElement;
+      dateTime: HTMLInputElement;
     };
     activitySection: {
       container: HTMLElement;
@@ -31,16 +35,20 @@ class LocationView {
 
   private modal: Modal;
   private table: Table;
-  private adapter: LocationAdapter = new LocationAdapter();
+  private adapter: Adapter = new Adapter("localizacion");
 
   constructor() {
     this.table = new Table("location-records");
     this.modal = new Modal("location-modal");
 
     this.form = {
+      alert: new Alert("location-alert"),
       legend: document.getElementById("form-title") as HTMLLegendElement,
       adding: false,
       inputs: {
+        serialNumber: document.getElementById(
+          "serial-number-input",
+        ) as HTMLInputElement,
         chinaId: document.getElementById("china-id-input") as HTMLInputElement,
         altitude: document.getElementById("altitude-input") as HTMLInputElement,
         longitude: document.getElementById(
@@ -50,6 +58,7 @@ class LocationView {
         altitudeUnits: document.getElementById(
           "altitude-units-input",
         ) as HTMLInputElement,
+        dateTime: document.getElementById("datetime-input") as HTMLInputElement,
       },
       activitySection: {
         container: document.getElementById("activity-section") as HTMLElement,
@@ -70,8 +79,11 @@ class LocationView {
   }
 
   private initialize() {
-    this.initTable().then();
-    this.initCrudBtns();
+    Promise.all([
+      this.initTable().then(),
+      this.initCrudBtns(),
+      this.initForm(),
+    ]).then();
   }
 
   private async initTable() {
@@ -174,6 +186,55 @@ class LocationView {
   private setActivitySelection(value: boolean): void {
     this.form.activitySection.true.checked = value;
     this.form.activitySection.false.checked = !value;
+  }
+
+  private clearFormFields(): void {
+    Object.values(this.form.inputs).forEach((input) => {
+      input.value = "";
+    });
+  }
+
+  private initForm() {
+    this.form.cancelBtn.addEventListener("click", () => {
+      Promise.all([
+        this.form.alert.setVisible(false),
+        this.modal.show(false),
+        this.clearFormFields,
+      ]).then();
+    });
+
+    this.form.aceptBtn.addEventListener("click", async () => {
+      const inputs = this.form.inputs;
+      const longitude = inputs.longitude.value.trim();
+      const latitude = inputs.longitude.value.trim();
+      const altitude = inputs.altitude.value.trim();
+      const altitude_units = inputs.altitudeUnits.value.trim();
+      const china_coordinate_id = inputs.chinaId.value.trim();
+      const date_time = inputs.dateTime.value.trim();
+      const serial_number = inputs.serialNumber.value.trim();
+
+      const location = {
+        date_time,
+        china_coordinate_id,
+        altitude_units,
+        longitude,
+        altitude,
+        latitude,
+        serial_number,
+      };
+
+      const response = await this.adapter.add(location);
+      if (response.status >= 400) {
+        const e = JSON.parse(await response.text());
+        this.form.alert.setMessage(e.message);
+        this.form.alert.setVisible(true);
+        return;
+      }
+
+      this.form.alert.setVisible(false);
+      this.modal.show(false);
+      this.refreshTable();
+    });
   }
 }
 

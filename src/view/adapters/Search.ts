@@ -29,7 +29,7 @@ export interface Search {
    * almacenar los parámetros que se usaron para realizar la búsqueda, facilitando la reproducción
    * de la misma o la visualización de los filtros aplicados.
    */
-  criteria: Partial<{ [key: string]: unknown }>;
+  criteria: { [key: string]: unknown };
 
   /**
    * El conjunto de resultados obtenidos de la búsqueda.

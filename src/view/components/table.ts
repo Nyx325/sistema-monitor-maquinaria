@@ -1,4 +1,4 @@
-import { Search } from "../adapters/models/search.js";
+import { Search } from "../adapters/Search.js";
 
 export class Table {
   private readonly table: HTMLTableElement;

@@ -1,5 +1,4 @@
-import Utils from "../../scripts/config.js";
-
+import Utils from "../scripts/config.js";
 /**
  * Interfaz genérica `IAdapter` que representa un adaptador para interactuar con una API.
  * Define los métodos básicos de CRUD (Crear, Leer, Actualizar y Eliminar), así como la consulta de datos con criterios específicos.
@@ -8,7 +7,7 @@ import Utils from "../../scripts/config.js";
  * @typeParam NM - Tipo que representa el modelo de creación (nuevo modelo), usado en la operación de adición.
  * @typeParam I - Tipo que representa el identificador único de un modelo, usado en la operación de obtención.
  */
-export abstract class IAdapter<M, NM, I> {
+export class Adapter {
   protected endpoint: string;
   protected utils: Utils = Utils.instance;
 
@@ -20,7 +19,9 @@ export abstract class IAdapter<M, NM, I> {
    * @param model - Instancia del nuevo modelo (`NM`) que se añadirá.
    * @returns Una promesa que resuelve con la respuesta de la API.
    */
-  async add(model: NM): Promise<Response> {
+  async add(model: { [key: string]: unknown }): Promise<Response> {
+    console.log("Model");
+    console.log(model);
     return await fetch(`${this.utils.apiUrl}/${this.endpoint}`, {
       method: "POST",
       headers: {
@@ -35,7 +36,7 @@ export abstract class IAdapter<M, NM, I> {
    * @param model - Instancia del modelo (`M`) que se eliminará.
    * @returns Una promesa que resuelve con la respuesta de la API.
    */
-  async delete(id: I): Promise<Response> {
+  async delete(id: unknown): Promise<Response> {
     return await fetch(`${this.utils.apiUrl}/${this.endpoint}/${id}`, {
       method: "DELETE",
     });
@@ -46,7 +47,7 @@ export abstract class IAdapter<M, NM, I> {
    * @param model - Instancia del modelo (`M`) con los datos actualizados.
    * @returns Una promesa que resuelve con la respuesta de la API.
    */
-  async update(model: M): Promise<Response> {
+  async update(model: { [key: string]: unknown }): Promise<Response> {
     return await fetch(`${this.utils.apiUrl}/${this.endpoint}`, {
       method: "PUT",
       headers: {
@@ -62,7 +63,10 @@ export abstract class IAdapter<M, NM, I> {
    * @param pageNumber - Número de página para la paginación de los resultados.
    * @returns Una promesa que resuelve con la respuesta de la API.
    */
-  async getBy(criteria: Partial<M>, pageNumber: number): Promise<Response> {
+  async getBy(
+    criteria: { [key: string]: unknown },
+    pageNumber: number,
+  ): Promise<Response> {
     console.log(`Criteria:`);
     console.log(criteria);
     const params = this.utils.createParams(criteria);
@@ -77,7 +81,7 @@ export abstract class IAdapter<M, NM, I> {
    * @param id - Identificador único (`I`) del modelo que se desea obtener.
    * @returns Una promesa que resuelve con la respuesta de la API.
    */
-  async get(id: I): Promise<Response> {
+  async get(id: unknown): Promise<Response> {
     return await fetch(`${this.utils.apiUrl}/${this.endpoint}/${id}`);
   }
 }

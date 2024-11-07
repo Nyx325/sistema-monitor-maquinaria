@@ -20,6 +20,21 @@ const snapshotRepo: ISnapshotRepository = new PrismaSnapshotRepository();
 const equipementRepo: IEquipementRepository = new PrismaEquipementRepo();
 const repo: ILocationRepository = new PrismaLocationRepo();
 
+const translateKey = (key: string): string => {
+  const defaultValue = "campo desconocido";
+  const campos: { [key: string]: string } = {
+    latitude: "latitud",
+    longitude: "longitud",
+    altitude: "altitud",
+    altitude_units: "unidades de altitud",
+    china_coordinate_id: "id de coordenadas chinas",
+    date_time: "fecha y hora",
+    serial_number: "numero de serie",
+  };
+
+  return campos[key] ?? defaultValue;
+};
+
 // Controlador para agregar una nueva localización
 export const addLocation = async (
   req: Request,
@@ -36,62 +51,53 @@ export const addLocation = async (
       serial_number,
     } = req.body;
 
-    const msgErr: string[] = [];
-    const location: Partial<NewLocation> = {};
+    console.log(`Latitud ${latitude}`);
 
-    // Validar cada campo numérico usando validateFloat
-    const latitudeValidation = validateFloat({
-      input: latitude,
-      valueName: "latitude",
-    });
+    const location: Partial<NewLocation> = {
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+      altitude: Number(altitude),
+      altitude_units,
+      china_coordinate_id: Number(china_coordinate_id),
+      date_time: new Date(date_time),
+    };
 
-    if (latitudeValidation.msg) msgErr.push(latitudeValidation.msg);
-    else location.latitude = latitudeValidation.number;
+    console.log(location);
+    console.log(serial_number);
 
-    const longitudeValidation = validateFloat({
-      input: longitude,
-      valueName: "longitude",
-    });
+    const msg = [];
 
-    if (longitudeValidation.msg) msgErr.push(longitudeValidation.msg);
-    else location.longitude = longitudeValidation.number;
+    if (isNaN(Date.parse(date_time)))
+      msg.push("Formato de fecha y hora no válido");
 
-    const altitudeValidation = validateFloat({
-      input: altitude,
-      valueName: "altitude",
-    });
+    const keys = Object.keys(location) as Array<keyof NewLocation>;
+    for (const key of keys) {
+      console.log(`Atributo ${key}: ${location[key]}`);
+      if (key === "date_time") continue;
 
-    if (altitudeValidation.msg) msgErr.push(altitudeValidation.msg);
-    else location.altitude = altitudeValidation.number;
+      if (
+        key !== "china_coordinate_id" &&
+        key !== "snapshot_id" &&
+        location[key] === undefined
+      ) {
+        msg.push(`${translateKey(key)} no fue definido`);
+        continue;
+      }
 
-    if (location.china_coordinate_id) {
-      const chinaCoordinateIdValidation = validateFloat({
-        input: china_coordinate_id,
-        valueName: "china_coordinate_id",
-      });
-
-      if (chinaCoordinateIdValidation.msg)
-        msgErr.push(chinaCoordinateIdValidation.msg);
-      else location.china_coordinate_id = chinaCoordinateIdValidation.number;
+      if (typeof location[key] === "number" && isNaN(location[key])) {
+        msg.push(`${translateKey(key)} debe ser un numero`);
+        continue;
+      }
     }
 
-    // Validación adicional para campos no numéricos
-    if (!altitude_units) msgErr.push("altitude_units es requerido");
-    else location.altitude_units = altitude_units;
-
-    const dateValidation = validateDate(date_time);
-
-    if (dateValidation.msg) msgErr.push(dateValidation.msg);
-    else location.date_time = dateValidation.date;
-
     if (!serial_number) {
-      msgErr.push("serial_number es requerido");
+      msg.push("Numero de serie requerido");
     } else {
       const equipement: Equipement | undefined =
         await equipementRepo.get(serial_number);
 
       if (!equipement) {
-        msgErr.push("Equipo no encontrado");
+        msg.push("Equipo no encontrado");
       } else {
         const snapshot: ApiSnapshot = await snapshotRepo.add({
           serial_number,
@@ -104,7 +110,7 @@ export const addLocation = async (
     }
 
     // Retorna errores o la estructura de location si es válida
-    if (msgErr.length > 0) throw new UserError(msgErr.join(", "));
+    if (msg.length > 0) throw new UserError(msg.join(", "));
 
     await repo.add(location as NewLocation);
 
@@ -163,7 +169,7 @@ export const updateLocation = async (
       if (key === "china_coordinate_id") continue;
 
       if (!location[key]) {
-        msg.push(`No se definió ${key}`);
+        msg.push(`No se definió ${translateKey(key)}`);
       }
     }
 
@@ -172,13 +178,13 @@ export const updateLocation = async (
 
       // Validación de existencia de input
       if (!location[key] && key !== "china_coordinate_id") {
-        msg.push(`${key} no fue definido`);
+        msg.push(`${translateKey(key)} no fue definido`);
         continue;
       }
 
       // Validación de que sea un número entero
       if (isNaN(location[key])) {
-        msg.push(`${key} deber ser un número`);
+        msg.push(`${translateKey(key)} deber ser un número`);
         continue;
       }
     }

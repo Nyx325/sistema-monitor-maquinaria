@@ -1,11 +1,11 @@
 import Modal from "../components/modal.js";
 import { Table } from "../components/table.js";
 import Alert from "../components/alert.js";
-import { Search } from "../adapters/models/search.js";
-import { EquipementAdapter } from "../adapters/infraestructure/EquipementAdapter.js";
+import { Search } from "../adapters/Search.js";
+import { Adapter } from "../adapters/Adapter.js";
 
 class EquipementView {
-  private adapter: EquipementAdapter;
+  private adapter: Adapter;
   private serialNInput: HTMLInputElement;
   private modelInput: HTMLInputElement;
   private oemInput: HTMLInputElement;
@@ -23,7 +23,7 @@ class EquipementView {
   private adding: boolean = false;
 
   constructor() {
-    this.adapter = new EquipementAdapter();
+    this.adapter = new Adapter("equipos");
 
     // Asignación de elementos del DOM
     this.serialNInput = document.getElementById(
