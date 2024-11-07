@@ -137,12 +137,14 @@ class LocationView {
 
   private initCrudBtns(): void {
     this.crudBtns.add.addEventListener("click", () => {
+      this.form.inputs.serialNumber.classList.remove("d-none");
       this.form.activitySection.container.classList.add("d-none");
       this.form.adding = true;
       this.modal.show(true);
     });
 
     this.crudBtns.update.addEventListener("click", () => {
+      this.form.adding = false;
       const lastSelected = this.table.lastSelected;
       if (!lastSelected) return;
 
@@ -156,6 +158,8 @@ class LocationView {
       altitude.value = String(l.altitude);
       altitudeUnits.value = String(l.altitude_units);
       chinaId.value = String(l.china_coordinate_id);
+
+      this.form.inputs.serialNumber.classList.add("d-none");
       this.form.activitySection.container.classList.remove("d-none");
       this.setActivitySelection(!!l.active);
 
@@ -212,18 +216,45 @@ class LocationView {
       const china_coordinate_id = inputs.chinaId.value.trim();
       const date_time = inputs.dateTime.value.trim();
       const serial_number = inputs.serialNumber.value.trim();
+      const active = this.getActivitySelection();
 
-      const location = {
-        date_time,
-        china_coordinate_id,
-        altitude_units,
-        longitude,
-        altitude,
-        latitude,
-        serial_number,
-      };
+      let location;
+      let response;
 
-      const response = await this.adapter.add(location);
+      if (this.form.adding) {
+        location = {
+          date_time,
+          china_coordinate_id,
+          altitude_units,
+          longitude,
+          altitude,
+          latitude,
+          serial_number,
+        };
+        response = await this.adapter.add(location);
+      } else {
+        if (this.table.lastSelected === undefined) {
+          console.error("No se seleccionó un elemento");
+          return;
+        }
+
+        const selected = this.table.lastSelected;
+
+        location = {
+          location_id: selected.record.location_id,
+          snapshot_id: selected.record.snapshot_id,
+          active,
+          date_time,
+          china_coordinate_id,
+          altitude_units,
+          longitude,
+          altitude,
+          latitude,
+        };
+
+        response = await this.adapter.update(location);
+      }
+
       if (response.status >= 400) {
         const e = JSON.parse(await response.text());
         this.form.alert.setMessage(e.message);

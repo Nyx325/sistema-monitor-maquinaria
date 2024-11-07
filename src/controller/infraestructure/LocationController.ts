@@ -144,6 +144,10 @@ export const updateLocation = async (
       date_time,
     } = req.body;
 
+    console.log("\n\nInicio de solicitud HTTP");
+    console.log(req.body);
+    console.log("\n\n");
+
     const msg = [];
 
     const dateValidation = validateDate(date_time);
@@ -152,50 +156,43 @@ export const updateLocation = async (
     }
 
     const location: Location = {
-      snapshot_id,
-      active,
-      location_id,
-      latitude,
-      longitude,
-      altitude,
+      snapshot_id: Number(snapshot_id),
+      active: active !== "false",
+      location_id: Number(location_id),
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+      altitude: Number(altitude),
       altitude_units,
-      china_coordinate_id,
-      date_time,
+      china_coordinate_id: Number(china_coordinate_id),
+      date_time: dateValidation.date ?? new Date(),
     };
 
-    const keys = Object.keys(location) as Array<keyof Location>;
-
+    const keys = Object.keys(location) as Array<keyof NewLocation>;
     for (const key of keys) {
-      if (key === "china_coordinate_id") continue;
+      console.log(`Atributo ${key}: ${location[key]}`);
+      if (key === "date_time") continue;
 
-      if (!location[key]) {
-        msg.push(`No se definió ${translateKey(key)}`);
-      }
-    }
-
-    for (const key of keys) {
-      if (typeof location[key] !== "number") continue;
-
-      // Validación de existencia de input
-      if (!location[key] && key !== "china_coordinate_id") {
+      if (
+        key !== "china_coordinate_id" &&
+        key !== "snapshot_id" &&
+        location[key] === undefined
+      ) {
         msg.push(`${translateKey(key)} no fue definido`);
         continue;
       }
 
-      // Validación de que sea un número entero
-      if (isNaN(location[key])) {
-        msg.push(`${translateKey(key)} deber ser un número`);
+      if (typeof location[key] === "number" && isNaN(location[key])) {
+        msg.push(`${translateKey(key)} debe ser un numero`);
         continue;
       }
     }
 
     const original = await repo.get(location.location_id);
 
-    if (!original) throw new UserError("El registro a modificar no existe");
+    if (original === undefined) msg.push("El registro a modificar no existe");
+    if (msg.length > 0) throw new UserError(msg.join(", "));
 
-    location.snapshot_id = original.snapshot_id;
-
-    //TODO: Considerar qué hacer con el cambio de snapshot_id
+    location.snapshot_id = original?.snapshot_id as number;
 
     await repo.update(location);
     res
