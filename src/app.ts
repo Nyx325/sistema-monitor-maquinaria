@@ -21,6 +21,11 @@ router.use(
   express.static(path.join(__dirname, "../dist/view/components/")),
 );
 
+router.use(
+  "/adapters",
+  express.static(path.join(__dirname, "../dist/view/adapters/")),
+);
+
 router.get("/", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/views/index.html"));
 });
@@ -38,11 +43,7 @@ router.get("/equipos", (_request, response) => {
 });
 
 router.get("/localizacion", (_request, response) => {
-  response.sendFile(path.join(__dirname, "../public/views/localizacion.html"));
-});
-
-router.get("/login", (_request, response) => {
-  response.sendFile(path.join(__dirname, "../public/views/login.html"));
+  response.sendFile(path.join(__dirname, "../public/views/location.html"));
 });
 
 export default router;
