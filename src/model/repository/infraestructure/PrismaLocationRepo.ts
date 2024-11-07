@@ -129,7 +129,6 @@ export class PrismaLocationRepo implements ILocationRepository {
     try {
       conn = await this.connector.getConnection();
 
-      // Ejecutar las consultas de forma concurrente si no dependen entre sí
       const result = await conn.location.findFirst({
         where: {
           location_id: id,
