@@ -112,6 +112,8 @@ export class PrismaLocationRepo extends Repository<
             china_coordinate_id: criteria.china_coordinate_id,
             active: criteria.active,
           },
+          include: { snapshot: true },
+          orderBy: { date_time: "desc" },
           skip: (pageNumber - 1) * Config.instance.pageSize, // Skip previous pages
           take: Config.instance.pageSize, // Take only the results for the current page
         }),

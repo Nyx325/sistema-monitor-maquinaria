@@ -1,29 +1,19 @@
-import { Search } from "../adapters/Search.js";
+import { Record } from "@prisma/client/runtime/library";
+import { Search } from "../../model/entities/Search.js";
 
-export class Table {
+export class Table<T extends Record<string, unknown>> {
   private readonly table: HTMLTableElement;
   private title: string = "";
   private headers: string[] = [];
-  public lastSearch: Search | undefined;
+  public lastSearch: Search<T> | undefined;
   public lastSelected:
     | {
         row: HTMLTableRowElement;
-        record: { [key: string]: unknown };
+        record: T;
       }
     | undefined;
 
-  private parseData: (record: { [key: string]: unknown }) => string[] = (
-    record,
-  ) => {
-    const keys = Object.keys(record);
-
-    const recordParsed = [];
-    for (const key of keys) {
-      recordParsed.push(String(record[key]));
-    }
-
-    return recordParsed;
-  };
+  private parseData: (record: T) => string[] = (record) => [String(record)];
 
   constructor(id: string) {
     this.table = document.getElementById(id) as HTMLTableElement;
@@ -82,7 +72,7 @@ export class Table {
     this.headers = headers;
   }
 
-  public onParseData(func: (record: { [key: string]: unknown }) => string[]) {
+  public onParseData(func: (record: T) => string[]) {
     this.parseData = func;
   }
 }

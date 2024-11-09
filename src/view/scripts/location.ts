@@ -1,8 +1,9 @@
 import { Table } from "../components/table.js";
-import { Search } from "../adapters/Search.js";
 import { Adapter } from "../adapters/Adapter.js";
 import Modal from "../components/modal.js";
 import Alert from "../components/alert.js";
+import { Search } from "../../model/entities/Search.js";
+import { LocationWithSnapshot } from "../../model/entities/ModelsWithSnapshot.js";
 
 class LocationView {
   private form: {
@@ -34,7 +35,7 @@ class LocationView {
   };
 
   private modal: Modal;
-  private table: Table;
+  private table: Table<LocationWithSnapshot>;
   private adapter: Adapter = new Adapter("localizacion");
 
   constructor() {
@@ -90,6 +91,7 @@ class LocationView {
     this.table.setTitle("Localización");
 
     this.table.setHeaders([
+      "Numero de serie",
       "Fecha",
       "Longitud",
       "Latitud",
@@ -100,6 +102,7 @@ class LocationView {
 
     this.table.onParseData((record) => {
       return [
+        String(record.snapshot?.serial_number),
         String(record.date_time),
         String(record.longitude),
         String(record.latitude),
@@ -114,8 +117,6 @@ class LocationView {
 
   private async refreshTable() {
     const lastS = this.table.lastSearch;
-    console.log("Last search: ");
-    console.log(lastS);
 
     const response = await this.adapter.getBy(
       lastS?.criteria ?? { active: true },
@@ -128,9 +129,10 @@ class LocationView {
       return;
     }
 
-    const search: Search = JSON.parse(await response.text());
-    console.log("Search");
-    console.log(search);
+    const search: Search<LocationWithSnapshot> = JSON.parse(
+      await response.text(),
+    );
+
     this.table.lastSearch = search;
     this.table.render();
   }
@@ -203,7 +205,7 @@ class LocationView {
       Promise.all([
         this.form.alert.setVisible(false),
         this.modal.show(false),
-        this.clearFormFields,
+        this.clearFormFields(),
       ]).then();
     });
 

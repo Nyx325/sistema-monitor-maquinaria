@@ -114,6 +114,8 @@ export class PrismaCOHRepository extends Repository<
             hour: criteria.hour,
             date_time: dateFiler,
           },
+          orderBy: { date_time: "desc" },
+          include: { snapshot: true },
           skip: (pageNumber - 1) * Config.instance.pageSize, // Skip previous pages
           take: Config.instance.pageSize, // Take only the results for the current page
         }),

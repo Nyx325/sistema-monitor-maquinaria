@@ -46,4 +46,8 @@ router.get("/localizacion", (_request, response) => {
   response.sendFile(path.join(__dirname, "../public/views/location.html"));
 });
 
+router.get("/coh", (_req, res) => {
+  res.sendFile(path.join(__dirname, "../public/views/coh.html"));
+});
+
 export default router;

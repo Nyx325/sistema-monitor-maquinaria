@@ -97,6 +97,7 @@ export class PrismaEquipementRepo implements IEquipementRepository {
             model: criteria.model ? { contains: criteria.model } : undefined,
             active: criteria.active,
           },
+          orderBy: { serial_number: "asc" },
           skip: (pageNumber - 1) * Config.instance.pageSize, // Skip previous pages
           take: Config.instance.pageSize, // Take only the results for the current page
         }),
