@@ -7,16 +7,12 @@ import {
   ILocationRepository,
   NewLocation,
 } from "../use_cases/ILocationRespository.js";
-import { ISnapshotRepository } from "../use_cases/ISnapshotRepository.js";
-import PrismaSnapshotRepository from "./PrismaSnapshotRepository.js";
 
 export class PrismaLocationRepo implements ILocationRepository {
-  private readonly snapshotRepo: ISnapshotRepository;
   private readonly connector: IConnector<PrismaClient>;
 
   constructor() {
     this.connector = new PrismaConnector();
-    this.snapshotRepo = new PrismaSnapshotRepository();
   }
 
   async add(model: NewLocation): Promise<Location> {
