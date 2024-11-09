@@ -1,8 +1,8 @@
 import { CumulativeOperatingHours } from "@prisma/client";
-import { IRepository } from "./IRepository.js";
 import { NewCOH } from "../../entities/NewCumulativeOperatingHours.js";
+import { Repository } from "./Repository.js";
 
-export type ICOHRepository = IRepository<
+export type ICOHRepository = Repository<
   CumulativeOperatingHours,
   NewCOH,
   number

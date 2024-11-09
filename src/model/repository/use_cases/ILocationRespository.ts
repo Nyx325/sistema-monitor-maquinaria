@@ -1,5 +1,5 @@
 import { Location } from "@prisma/client";
-import { IRepository } from "./IRepository.js";
+import { Repository } from "./Repository.js";
 
 export type NewLocation = Omit<Location, "active" | "location_id">;
-export type ILocationRepository = IRepository<Location, NewLocation, number>;
+export type ILocationRepository = Repository<Location, NewLocation, number>;

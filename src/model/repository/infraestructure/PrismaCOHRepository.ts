@@ -1,16 +1,21 @@
 import { PrismaClient } from "@prisma/client";
-import { ICOHRepository } from "../use_cases/ICOHRepository.js";
 import { PrismaConnector } from "../../../controller/infraestructure/PrismaConnector.js";
 import { IConnector } from "../../../controller/use_cases/IConnector.js";
 import { NewCOH } from "../../entities/NewCumulativeOperatingHours.js";
 import { CumulativeOperatingHours } from "@prisma/client";
 import { Search } from "../../entities/Search.js";
 import Config from "../../../config.js";
+import { Repository } from "../use_cases/Repository.js";
 
-export class PrismaCOHRepository implements ICOHRepository {
+export class PrismaCOHRepository extends Repository<
+  CumulativeOperatingHours,
+  NewCOH,
+  number
+> {
   private readonly connector: IConnector<PrismaClient>;
 
   constructor() {
+    super();
     this.connector = new PrismaConnector();
   }
 
@@ -87,6 +92,11 @@ export class PrismaCOHRepository implements ICOHRepository {
     try {
       conn = await this.connector.getConnection();
 
+      const dateFiler =
+        criteria.date_time !== undefined
+          ? this.getDateFilter(criteria.date_time)
+          : undefined;
+
       // Ejecutar las consultas de forma concurrente si no dependen entre sí
       const [totalResults, results] = await Promise.all([
         conn.cumulativeOperatingHours.count({
@@ -94,7 +104,7 @@ export class PrismaCOHRepository implements ICOHRepository {
             snapshot_id: criteria.snapshot_id,
             active: criteria.active,
             hour: criteria.hour,
-            date_time: criteria.date_time,
+            date_time: dateFiler,
           },
         }),
         conn.cumulativeOperatingHours.findMany({
@@ -102,7 +112,7 @@ export class PrismaCOHRepository implements ICOHRepository {
             snapshot_id: criteria.snapshot_id,
             active: criteria.active,
             hour: criteria.hour,
-            date_time: criteria.date_time,
+            date_time: dateFiler,
           },
           skip: (pageNumber - 1) * Config.instance.pageSize, // Skip previous pages
           take: Config.instance.pageSize, // Take only the results for the current page

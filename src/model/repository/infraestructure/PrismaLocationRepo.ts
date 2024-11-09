@@ -1,17 +1,20 @@
-import { Location, PrismaClient } from "@prisma/client";
+import { Location, Prisma, PrismaClient } from "@prisma/client";
 import { IConnector } from "../../../controller/use_cases/IConnector.js";
 import { PrismaConnector } from "../../../controller/infraestructure/PrismaConnector.js";
 import { Search } from "../../entities/Search.js";
 import Config from "../../../config.js";
-import {
-  ILocationRepository,
-  NewLocation,
-} from "../use_cases/ILocationRespository.js";
+import { NewLocation } from "../use_cases/ILocationRespository.js";
+import { Repository } from "../use_cases/Repository.js";
 
-export class PrismaLocationRepo implements ILocationRepository {
+export class PrismaLocationRepo extends Repository<
+  Location,
+  NewLocation,
+  number
+> {
   private readonly connector: IConnector<PrismaClient>;
 
   constructor() {
+    super();
     this.connector = new PrismaConnector();
   }
 
@@ -75,10 +78,16 @@ export class PrismaLocationRepo implements ILocationRepository {
     try {
       conn = await this.connector.getConnection();
 
+      const dateFilter =
+        criteria.date_time !== undefined
+          ? this.getDateFilter(criteria.date_time)
+          : undefined;
+
       // Ejecutar las consultas de forma concurrente si no dependen entre sí
       const [totalResults, results] = await Promise.all([
         conn.location.count({
           where: {
+            date_time: dateFilter,
             altitude: criteria.altitude,
             latitude: criteria.latitude,
             longitude: criteria.longitude,
@@ -92,6 +101,7 @@ export class PrismaLocationRepo implements ILocationRepository {
         }),
         conn.location.findMany({
           where: {
+            date_time: dateFilter,
             altitude: criteria.altitude,
             latitude: criteria.latitude,
             longitude: criteria.longitude,

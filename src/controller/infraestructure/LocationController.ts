@@ -304,7 +304,7 @@ export const getLocationBy = async (
       location_id: locationId,
       altitude,
       latitude,
-      date_time: dateTime,
+      date_time: dateTime ? new Date(dateTime as string) : undefined,
       longitude,
       snapshot_id: undefined,
       altitude_units: altitudeUnits,
@@ -325,11 +325,11 @@ export const getLocationBy = async (
     const keys = Object.keys(criterio) as Array<keyof Partial<Location>>;
 
     for (const key of keys) {
-      if (!criterio[key]) continue;
+      if (criterio[key] === undefined) continue;
 
       if (typeof criterio[key] === "number") {
         const validation = validateFloat({
-          valueName: key,
+          valueName: translateKey(key),
           input: String(criterio[key]),
         });
 
