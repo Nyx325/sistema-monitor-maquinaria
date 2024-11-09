@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/public/css/styledash.css">
+
+
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+
+</head>
+<body>
+
+
+    <nav class="sidebar">
+        <h2>Proyectos y construcciones Marsal</h2>
+        <br>
+        <ul>
+            <li><a href="reportes.html">Reportes</a></li>
+        </ul>
+        <br><br><br>
+        <img src="/public/assets/img/imgendash.jpg">
+    </nav>
+
+    <main class="main-content">
+        <header>
+            <img src="/public/assets/img/LogoMarsal.png" class="logo">
+            <h1>Sistema de monitoreo para activos MARSAL</h1>
+            <button onclick="logout()">Cerrar Sesión</button>
+        </header>
+        <BR><BR><BR><BR>
+
+        <section class="stats">
+            <div class="row">
+                <a href="Usuarios.html" class="card"> 
+                    <i class='bx bxs-user'></i><br> Usuarios <span id="users"></span>
+                </a>
+                <a href="maquinaria.html" class="card">
+                    <i class='bx bxs-cog'></i> <br> Maquinaria <span id="machines"></span>
+                </a>
+                <a href="localizacion.html" class="card">
+                    <i class='bx bxs-map'></i> <br> Localización <span id="location"></span>
+                </a>
+                <a href="distancia.html" class="card">
+                    <i class='bx bxs-direction-right'></i> <br> Distancia <span id="distance"></span>
+                </a>
+                <a href="combrestante.html" class="card">
+                    <i class='bx bxs-gas-pump'></i> <br> Combustible restante <span id="combrestant"></span>
+                </a>
+                <a href="combtotal.html" class="card">
+                    <i class='bx bxs-gas-pump'></i> <br> Combustible de las ultimas 24 hrs <span id="combtotal"></span>
+                </a>
+            </div>
+            <div class="row">
+                <a href="cargaAcumulada.html" class="card">
+                    <i class='bx bxs-truck'></i><br> Carga Acumulada <span id="CargaAcu"></span>
+                </a>
+                <a href="hrsInactivas.html" class="card">
+                    <i class='bx bxs-time-five'></i><br> Horas Inactivas acumuladas <span id="hrsinactivasacu"></span>
+                </a>
+                <a href="hrsOperadasAcu.html" class="card">
+                    <i class='bx bxs-time'></i><br> Horas Operadas acumuladas <span id="hrsOpeAcu"></span>
+                </a>
+                <a href="cargautilAcum.html" class="card">
+                    <i class='bx bxs-box'></i><br> Carga útil acumulada <span id="cargaU"></span>
+                </a>
+                <a href="defrestante.html" class="card">
+                    <i class='bx bxs-droplet'></i><br> DEF restante <span id="defRest"></span>
+                </a>
+                <a href="estadomotor.html" class="card">
+                    <i class='bx bxs-bell'></i><br> Estado del motor <span id="statusmotor"></span>
+                </a>
+            </div>
+        </section>
+        
+
+     
+
+    </main>
+
+    <script src="/public/js/dash.js"></script>
+</body>
+</html>
