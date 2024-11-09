@@ -29,7 +29,7 @@ body {
 .welcome-back {
     display: flex;
     align-items: center;
-    color: aliceblue;
+    color: rgb(218, 227, 234);
     text-align: left;
     
 }
@@ -67,7 +67,7 @@ body {
     width: 400px;
     padding: 1rem;
     margin: 2rem;
-    background-color: rgba(255, 255, 255, 0.602);
+    background-color: rgba(255, 255, 255, 0.853);
     text-align: center;
 }
 
@@ -90,7 +90,7 @@ body {
     align-items: center;
     justify-content: center;
     padding: 1.5rem;
-    border: solid thin rgb(255, 255, 255);
+    border: solid thin rgb(9, 9, 9);
     border-radius: 50%;
     font-size: 1.5rem;
     transition: all .3s ease-in;
