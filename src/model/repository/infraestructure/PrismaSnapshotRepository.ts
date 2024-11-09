@@ -1,18 +1,20 @@
 import { IConnector } from "../../../controller/use_cases/IConnector.js";
-import {
-  ISnapshotRepository,
-  NewSnapshot,
-} from "../use_cases/ISnapshotRepository.js";
+import { NewSnapshot } from "../use_cases/ISnapshotRepository.js";
 import { PrismaConnector } from "../../../controller/infraestructure/PrismaConnector.js";
 import { ApiSnapshot, PrismaClient } from "@prisma/client";
 import { Search } from "../../entities/Search.js";
 import Config from "../../../config.js";
-import { Prisma } from "@prisma/client";
+import { Repository } from "../use_cases/Repository.js";
 
-export default class PrismaSnapshotRepository implements ISnapshotRepository {
+export default class PrismaSnapshotRepository extends Repository<
+  ApiSnapshot,
+  NewSnapshot,
+  number
+> {
   private readonly connector: IConnector<PrismaClient>;
 
   constructor() {
+    super();
     this.connector = new PrismaConnector();
   }
 
@@ -76,41 +78,10 @@ export default class PrismaSnapshotRepository implements ISnapshotRepository {
     try {
       conn = await this.connector.getConnection();
 
-      let dateFilter: Prisma.DateTimeFilter | undefined;
-
-      if (criteria.snapshot_datetime) {
-        const snapshotD = criteria.snapshot_datetime;
-
-        // Define el inicio y el final del día especificado en snapshotD
-        const startOfDay = new Date(
-          Date.UTC(
-            snapshotD.getUTCFullYear(),
-            snapshotD.getUTCMonth(),
-            snapshotD.getUTCDate(),
-            0,
-            0,
-            0,
-            0, // Inicio del día
-          ),
-        );
-
-        const endOfDay = new Date(
-          Date.UTC(
-            snapshotD.getUTCFullYear(),
-            snapshotD.getUTCMonth(),
-            snapshotD.getUTCDate(),
-            23,
-            59,
-            59,
-            999, // Fin del día
-          ),
-        );
-
-        dateFilter = {
-          gte: startOfDay,
-          lte: endOfDay,
-        };
-      }
+      const dateFilter =
+        criteria.snapshot_datetime !== undefined
+          ? this.getDateFilter(criteria.snapshot_datetime)
+          : undefined;
 
       // Ejecutar las consultas de forma concurrente si no dependen entre sí
       const [totalResults, results] = await Promise.all([

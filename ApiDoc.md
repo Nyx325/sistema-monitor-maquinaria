@@ -119,7 +119,9 @@ Esta documentación describe las rutas de la API para gestionar equipos. Las rut
       "message": "No se encontró el equipo"
     }
     ```
+
 ### 5. **Buscar equipos con filtros**
+
 - **Ruta:** `GET /api/equipos`
 - **Descripción:** Obtiene una lista de equipos según los filtros especificados en los parámetros de consulta.
 - **Parámetros de consulta:**
@@ -165,7 +167,14 @@ Esta documentación describe las rutas de la API para gestionar equipos. Las rut
     ```
 
 ### Detalles de la Respuesta de Búsqueda
+
 - **totalPages**: Número total de páginas disponibles en los resultados de la búsqueda.
 - **currentPage**: Número de la página actual en la que se encuentran los resultados.
 - **criteria**: Objeto que representa los criterios de búsqueda utilizados para filtrar los resultados.
 - **result**: Arreglo de instancias del tipo `Equipement` que representan los elementos encontrados.
+
+## Snapshots
+
+## Localizacion
+
+## Horas operativas acumuladas

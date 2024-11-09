@@ -1,8 +1,9 @@
 import Modal from "../components/modal.js";
 import { Table } from "../components/table.js";
 import Alert from "../components/alert.js";
-import { Search } from "../adapters/Search.js";
 import { Adapter } from "../adapters/Adapter.js";
+import { Search } from "../../model/entities/Search.js";
+import { Equipement } from "@prisma/client";
 
 class EquipementView {
   private adapter: Adapter;
@@ -19,7 +20,7 @@ class EquipementView {
   private deleteBtn: HTMLButtonElement;
   private activitySection: HTMLElement;
   private alert: Alert;
-  private table: Table;
+  private table: Table<Equipement>;
   private adding: boolean = false;
 
   constructor() {
@@ -76,7 +77,7 @@ class EquipementView {
     this.table.setHeaders(["Numero de serie", "OEM", "Modelo"]);
 
     const response = await this.adapter.getBy({ active: true }, 1);
-    const search: Search = JSON.parse(await response.text());
+    const search: Search<Equipement> = JSON.parse(await response.text());
 
     this.table.onParseData((record) => {
       return [
@@ -191,7 +192,7 @@ class EquipementView {
         criteria: {},
       };
     } else {
-      const search: Search = JSON.parse(await reload.text());
+      const search: Search<Equipement> = JSON.parse(await reload.text());
       this.table.lastSearch = search;
     }
 

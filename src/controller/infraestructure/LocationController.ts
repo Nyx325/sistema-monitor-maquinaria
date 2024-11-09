@@ -51,8 +51,6 @@ export const addLocation = async (
       serial_number,
     } = req.body;
 
-    console.log(`Latitud ${latitude}`);
-
     const location: Partial<NewLocation> = {
       latitude: Number(latitude),
       longitude: Number(longitude),
@@ -62,9 +60,6 @@ export const addLocation = async (
       date_time: new Date(date_time),
     };
 
-    console.log(location);
-    console.log(serial_number);
-
     const msg = [];
 
     if (isNaN(Date.parse(date_time)))
@@ -72,7 +67,6 @@ export const addLocation = async (
 
     const keys = Object.keys(location) as Array<keyof NewLocation>;
     for (const key of keys) {
-      console.log(`Atributo ${key}: ${location[key]}`);
       if (key === "date_time") continue;
 
       if (
@@ -144,10 +138,6 @@ export const updateLocation = async (
       date_time,
     } = req.body;
 
-    console.log("\n\nInicio de solicitud HTTP");
-    console.log(req.body);
-    console.log("\n\n");
-
     const msg = [];
 
     const dateValidation = validateDate(date_time);
@@ -169,7 +159,6 @@ export const updateLocation = async (
 
     const keys = Object.keys(location) as Array<keyof NewLocation>;
     for (const key of keys) {
-      console.log(`Atributo ${key}: ${location[key]}`);
       if (key === "date_time") continue;
 
       if (
@@ -315,7 +304,7 @@ export const getLocationBy = async (
       location_id: locationId,
       altitude,
       latitude,
-      date_time: dateTime,
+      date_time: dateTime ? new Date(dateTime as string) : undefined,
       longitude,
       snapshot_id: undefined,
       altitude_units: altitudeUnits,
@@ -336,11 +325,11 @@ export const getLocationBy = async (
     const keys = Object.keys(criterio) as Array<keyof Partial<Location>>;
 
     for (const key of keys) {
-      if (!criterio[key]) continue;
+      if (criterio[key] === undefined) continue;
 
       if (typeof criterio[key] === "number") {
         const validation = validateFloat({
-          valueName: key,
+          valueName: translateKey(key),
           input: String(criterio[key]),
         });
 
