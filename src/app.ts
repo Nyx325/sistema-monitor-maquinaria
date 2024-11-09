@@ -27,11 +27,7 @@ router.use(
 );
 
 router.get("/", (_req, res) => {
-  res.sendFile(path.join(__dirname, "../public/views/index.html"));
-});
-
-router.get("/menu", (_req, res) => {
-  res.sendFile(path.join(__dirname, "../public/views/menu.html"));
+  res.sendFile(path.join(__dirname, "../public/views/dash.html"));
 });
 
 router.get("/login", (_req, res) => {
