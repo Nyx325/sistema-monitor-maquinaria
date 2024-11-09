@@ -7,3 +7,7 @@ export type LocationWithSnapshot = Prisma.LocationGetPayload<{
 export type COHWithSnapshot = Prisma.CumulativeOperatingHoursGetPayload<{
   include: { snapshot: true };
 }>;
+
+export type FuelUsedWithSnapshot = Prisma.FuelUsedGetPayload<{
+  include: { snapshot: true };
+}>;
