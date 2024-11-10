@@ -72,8 +72,9 @@ export const addFuelUsed = async (
     if (!serial_number) {
       msg.push("Numero de serie requerido");
     } else {
-      const equipement: Equipement | undefined =
-        await equipementRepo.get(serial_number);
+      const equipement: Equipement | undefined = await equipementRepo.get(
+        String(serial_number),
+      );
 
       if (!equipement) {
         msg.push("Equipo no encontrado");
@@ -271,7 +272,7 @@ export const getFuelUsedBy = async (
       active: active !== "false",
       fuel_consumed:
         fuel_consumed !== undefined ? Number(fuel_consumed) : undefined,
-      fuel_units: String(fuel_units),
+      fuel_units: fuel_units !== undefined ? String(fuel_units) : undefined,
       date_time:
         date_time !== undefined ? new Date(String(date_time)) : undefined,
       snapshot_id: undefined,

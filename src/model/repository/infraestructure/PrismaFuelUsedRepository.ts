@@ -90,29 +90,22 @@ export class PrismaFuelUsedRepository extends Repository<
           ? this.getDateFilter(criteria.date_time)
           : undefined;
 
-      // Ejecutar las consultas de forma concurrente si no dependen entre sí
+      const where = {
+        fuel_consumed: criteria.fuel_consumed,
+        date_time: dateFilter,
+        fuel_units: criteria.fuel_units
+          ? { contains: criteria.fuel_units }
+          : undefined,
+        active: criteria.active,
+        snapshot_id: criteria.snapshot_id,
+      };
+
       const [totalResults, results] = await Promise.all([
         conn.fuelUsed.count({
-          where: {
-            fuel_consumed: criteria.fuel_consumed,
-            date_time: dateFilter,
-            fuel_units: criteria.fuel_units
-              ? { contains: criteria.fuel_units }
-              : undefined,
-            active: criteria.active,
-            snapshot_id: criteria.snapshot_id,
-          },
+          where,
         }),
         conn.fuelUsed.findMany({
-          where: {
-            fuel_consumed: criteria.fuel_consumed,
-            date_time: dateFilter,
-            fuel_units: criteria.fuel_units
-              ? { contains: criteria.fuel_units }
-              : undefined,
-            active: criteria.active,
-            snapshot_id: criteria.snapshot_id,
-          },
+          where,
           include: { snapshot: true },
           orderBy: { date_time: "desc" },
           skip: (pageNumber - 1) * Config.instance.pageSize, // Skip previous pages
