@@ -15,3 +15,7 @@ export type FuelUsedWithSnapshot = Prisma.FuelUsedGetPayload<{
 export type FuelUsed24WithSnapshot = Prisma.FuelUsedLast24GetPayload<{
   include: { snapshot: true };
 }>;
+
+export type DistanceWithSnapshot = Prisma.DistanceGetPayload<{
+  include: { snapshot: true };
+}>;

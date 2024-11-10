@@ -92,6 +92,7 @@ model Distance {
   odometer       Float
   odometer_units String   @db.Text
   active         Boolean  @default(true)  
+  date_time      DateTime
   snapshot_id    Int?     
   snapshot       ApiSnapshot? @relation(fields: [snapshot_id], references: [snapshot_id])
 }
