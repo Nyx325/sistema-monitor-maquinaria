@@ -1,45 +1,40 @@
-import { Request, Response } from "express";
-import { PrismaEquipementRepo } from "../../model/repository/infraestructure/PrismaEquipementRepository.js";
-import { PrismaFuelUsedRepository } from "../../model/repository/infraestructure/PrismaFuelUsedRepository.js";
-import PrismaSnapshotRepository from "../../model/repository/infraestructure/PrismaSnapshotRepository.js";
-import { IEquipementRepository } from "../../model/repository/use_cases/IEquipementRepository.js";
-import { IFuelRepository } from "../../model/repository/use_cases/IFuelRepository.js";
-import { ISnapshotRepository } from "../../model/repository/use_cases/ISnapshotRepository.js";
-import { ApiSnapshot, Equipement, FuelUsed } from "@prisma/client";
+import { Request } from "express";
+import { Controller } from "../use_cases/Controller.js";
 import { NewFuelUsed } from "../../model/entities/NewFuelUsed.js";
+import { ApiSnapshot, Equipement, FuelUsed } from "@prisma/client";
+import { IFuelRepository } from "../../model/repository/use_cases/IFuelRepository.js";
+import { PrismaFuelUsedRepository } from "../../model/repository/infraestructure/PrismaFuelUsedRepository.js";
+import { IEquipementRepository } from "../../model/repository/use_cases/IEquipementRepository.js";
+import { PrismaEquipementRepo } from "../../model/repository/infraestructure/PrismaEquipementRepository.js";
+import { ISnapshotRepository } from "../../model/repository/use_cases/ISnapshotRepository.js";
+import PrismaSnapshotRepository from "../../model/repository/infraestructure/PrismaSnapshotRepository.js";
 import UserError from "../../model/entities/UserError.js";
-import {
-  validateDate,
-  validateFloat,
-  validateInt,
-} from "./CommonController.js";
 
-const snapshotRepo: ISnapshotRepository = new PrismaSnapshotRepository();
-const equipementRepo: IEquipementRepository = new PrismaEquipementRepo();
-const repo: IFuelRepository = new PrismaFuelUsedRepository();
+export class FuelUsedController extends Controller {
+  private readonly repo: IFuelRepository = new PrismaFuelUsedRepository();
+  private readonly snapshotRepo: ISnapshotRepository =
+    new PrismaSnapshotRepository();
+  private readonly equipementRepo: IEquipementRepository =
+    new PrismaEquipementRepo();
 
-const translateKey = (key: string): string => {
-  const defaultVal = "campo desconocido";
+  translateKey(key: string): string {
+    const defaultVal = "campo desconocido";
 
-  const campos: { [key: string]: string } = {
-    snapshot_id: "ID de la snapshot",
-    active: "activo o inactivo",
-    fuel_used_id: "ID del registro",
-    fuel_consumed: "combustible consumido",
-    date_time: "fecha y hora",
-    fuel_units: "unidades del combustible",
-    serial_number: "numero de serie",
-  };
+    const campos: { [key: string]: string } = {
+      snapshot_id: "ID de la snapshot",
+      active: "activo o inactivo",
+      fuel_used_id: "ID del registro",
+      fuel_consumed: "combustible consumido",
+      date_time: "fecha y hora",
+      fuel_units: "unidades del combustible",
+      serial_number: "numero de serie",
+    };
 
-  return campos[key] ?? defaultVal;
-};
+    return campos[key] ?? defaultVal;
+  }
 
-export const addFuelUsed = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  try {
-    const { fuel_consumed, fuel_units, date_time, serial_number } = req.body;
+  protected async performAdd(r: Request): Promise<void> {
+    const { fuel_consumed, fuel_units, date_time, serial_number } = r.body;
 
     const fuel: Partial<NewFuelUsed> = {
       fuel_consumed:
@@ -59,12 +54,12 @@ export const addFuelUsed = async (
       if (key === "date_time") continue;
 
       if (key !== "snapshot_id" && fuel[key] === undefined) {
-        msg.push(`${translateKey(key)} no fue definido`);
+        msg.push(`${this.translateKey(key)} no fue definido`);
         continue;
       }
 
       if (typeof fuel[key] === "number" && isNaN(fuel[key])) {
-        msg.push(`${translateKey(key)} debe ser un numero`);
+        msg.push(`${this.translateKey(key)} debe ser un numero`);
         continue;
       }
     }
@@ -72,14 +67,14 @@ export const addFuelUsed = async (
     if (!serial_number) {
       msg.push("Numero de serie requerido");
     } else {
-      const equipement: Equipement | undefined = await equipementRepo.get(
+      const equipement: Equipement | undefined = await this.equipementRepo.get(
         String(serial_number),
       );
 
       if (!equipement) {
         msg.push("Equipo no encontrado");
       } else {
-        const snapshot: ApiSnapshot = await snapshotRepo.add({
+        const snapshot: ApiSnapshot = await this.snapshotRepo.add({
           serial_number,
           snapshot_version: "1.0.0",
           snapshot_datetime: new Date(),
@@ -91,26 +86,10 @@ export const addFuelUsed = async (
 
     if (msg.length > 0) throw new UserError(msg.join(", "));
 
-    await repo.add(fuel as NewFuelUsed);
-
-    res
-      .status(201)
-      .json({ message: "Registro de combustible usado creado correctamente" });
-  } catch (e) {
-    if (e instanceof UserError) {
-      res.status(400).json({ message: e.message });
-    } else {
-      console.error(e);
-      res.status(500).json({ message: "Ocurrió un error inesperado" });
-    }
+    await this.repo.add(fuel as NewFuelUsed);
   }
-};
 
-export const updateFuelUsed = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  try {
+  protected async performUpdate(r: Request): Promise<void> {
     const {
       snapshot_id,
       active,
@@ -118,7 +97,7 @@ export const updateFuelUsed = async (
       fuel_consumed,
       date_time,
       fuel_units,
-    } = req.body;
+    } = r.body;
 
     const msg = [];
 
@@ -141,132 +120,69 @@ export const updateFuelUsed = async (
       if (key === "date_time") continue;
 
       if (key !== "snapshot_id" && fuel[key] === undefined) {
-        msg.push(`${translateKey(key)} no fue definido`);
+        msg.push(`${this.translateKey(key)} no fue definido`);
         continue;
       }
 
       if (typeof fuel[key] === "number" && isNaN(fuel[key])) {
-        msg.push(`${translateKey(key)} debe ser un numero`);
+        msg.push(`${this.translateKey(key)} debe ser un numero`);
         continue;
       }
     }
 
-    const original = await repo.get(fuel.fuel_used_id as number);
+    const original = await this.repo.get(fuel.fuel_used_id as number);
     if (original === undefined) msg.push("el regisstro a modificar no existe");
     if (msg.length > 0) throw new UserError(msg.join(", "));
 
     fuel.snapshot_id = original?.snapshot_id as number;
-    await repo.update(fuel as FuelUsed);
-    res
-      .status(200)
-      .json({ message: "Registro de localización actualizado correctamente" });
-  } catch (e) {
-    if (e instanceof UserError) {
-      res.status(400).json({ message: e.message });
-    } else {
-      console.error(e);
-      res.status(500).json({ message: "Ocurrió un error inesperado" });
-    }
-  }
-};
-
-export const deleteFuelUsed = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  const { fuelUsedId } = req.params;
-
-  if (!fuelUsedId) {
-    res.status(400).json({
-      message: "No se proporcionó un ID",
-    });
-    return;
+    await this.repo.update(fuel as FuelUsed);
   }
 
-  try {
-    const validation = validateInt({
+  protected async performDetele(r: Request): Promise<void> {
+    const { fuelUsedId } = r.params;
+
+    if (!fuelUsedId) throw new UserError("No se proporcionó un ID");
+
+    const validation = this.validateInt({
       input: fuelUsedId,
       valueName: "localización",
       positiveNumber: false,
     });
 
-    if (validation.msg) {
-      res.status(400).json({ message: validation.msg });
-      return;
-    }
+    if (validation.msg) throw new UserError(validation.msg);
 
-    const record = await repo.get(validation.number as number);
+    const record = await this.repo.get(validation.number as number);
 
-    if (record === undefined) {
-      res.status(404).json({ message: "Registro no encontrado" });
-      return;
-    }
+    if (record === undefined) throw new UserError("Registro no encontrado");
 
     // Elimina el equipo utilizando el número de serie
-    await repo.delete(record);
-    res.status(200).json({ message: "Registro eliminado con éxito" });
-  } catch (error) {
-    if (error instanceof UserError) {
-      res.status(400).json({ message: error.message });
-    } else {
-      console.error(error);
-      res.status(500).json({ message: "Internal server error" });
-    }
+    await this.repo.delete(record);
   }
-};
 
-export const getFuelUsed = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  try {
-    const { fuelUsedId } = req.params; // Obtenemos el número de serie desde los parámetros de la URL
+  protected async performGet(r: Request): Promise<unknown | undefined> {
+    const { fuelUsedId } = r.params; // Obtenemos el número de serie desde los parámetros de la URL
 
-    if (!fuelUsedId) {
-      res.status(400).json({
-        message: "El ID no fue proporcionado",
-      });
-      return;
-    }
+    if (!fuelUsedId) throw new UserError("El ID no fue proporcionado");
 
-    const validation = validateInt({
+    const validation = this.validateInt({
       input: fuelUsedId,
       valueName: "localización",
       positiveNumber: false,
     });
 
-    if (validation.msg) {
-      res.status(400).json({ message: validation.msg });
-      return;
-    }
+    if (validation.msg) throw new UserError(validation.msg);
 
-    const result = await repo.get(validation.number as number);
-
-    if (result === undefined)
-      res.status(404).json({ message: "No se encontró el equipo" });
-    else res.status(200).json(result);
-  } catch (error) {
-    if (error instanceof UserError) {
-      res.status(400).json({ message: error.message });
-    } else {
-      console.error(error);
-      res.status(500).json({ message: "Internal server error" });
-    }
+    return await this.repo.get(validation.number as number);
   }
-};
 
-export const getFuelUsedBy = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  try {
+  protected async performGetBy(r: Request): Promise<unknown> {
     const {
       active,
       fuel_consumed,
       date_time,
       fuel_units,
       pageNumer = "1",
-    } = req.query;
+    } = r.query;
 
     const criterio: Partial<FuelUsed> = {
       active: active !== "false",
@@ -280,7 +196,7 @@ export const getFuelUsedBy = async (
 
     const msg = [];
 
-    const validation = validateInt({
+    const validation = this.validateInt({
       input: pageNumer as string,
       valueName: "numero de página",
       positiveNumber: true,
@@ -295,8 +211,8 @@ export const getFuelUsedBy = async (
       if (criterio[key] === undefined) continue;
 
       if (typeof criterio[key] === "number") {
-        const validation = validateFloat({
-          valueName: translateKey(key),
+        const validation = this.validateFloat({
+          valueName: this.translateKey(key),
           input: String(criterio[key]),
         });
 
@@ -304,7 +220,7 @@ export const getFuelUsedBy = async (
       }
 
       if (typeof criterio[key] === "number") {
-        const validation = validateFloat({
+        const validation = this.validateFloat({
           valueName: key,
           input: String(criterio[key]),
         });
@@ -314,7 +230,7 @@ export const getFuelUsedBy = async (
       }
 
       if (key === "date_time") {
-        const validation = validateDate(String(criterio[key]));
+        const validation = this.validateDate(String(criterio[key]));
         if (validation.msg !== undefined) msg.push(validation.msg);
         continue;
       }
@@ -322,14 +238,6 @@ export const getFuelUsedBy = async (
 
     if (msg.length > 0) throw new UserError(msg.join(", "));
 
-    const result = await repo.getBy(criterio, page as number);
-    res.status(200).json(result);
-  } catch (e) {
-    if (e instanceof UserError) {
-      res.status(400).json({ message: e.message });
-    } else {
-      console.error(e);
-      res.status(500).json({ message: "Internal server error" });
-    }
+    return await this.repo.getBy(criterio, page as number);
   }
-};
+}
