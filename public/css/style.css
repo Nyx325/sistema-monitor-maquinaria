@@ -10,7 +10,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-image: url(/public/assets/img/3.jpg);
+    background-image: url(/assets/img/3.jpg);
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -19,12 +19,13 @@ body {
 
 .container-form {
     color: black;
-    width: 90%;
-    height: 90vh;
+    width: 125%;
+    height: 120vh;
     display: flex;
     justify-content: space-around;
     transition:  all .5s ease-out;
 }
+
 
 .welcome-back {
     display: flex;
@@ -105,11 +106,13 @@ body {
     padding: 2rem 0;
 }
 
-.formulario input {
-    width: 70%;
+.formulario input[type="text"],
+.formulario input[type="user"],
+.formulario input[type="email"],
+.formulario input[type="password"] {
+    width: 100%; /* Ocupa todo el ancho del formulario */
     display: block;
-    margin: auto;
-    margin-bottom: 2rem;
+    margin: 1rem 0; /* Margen superior e inferior */
     background-color: transparent;
     border: none;
     border-bottom: rgb(250, 240, 59) thin solid;
@@ -117,22 +120,21 @@ body {
     outline: none;
     padding: .2rem 0;
     font-size: .9rem;
-    color: rgb(255, 255, 255);
+    color: rgb(0, 0, 0); /* Color de texto */
 }
 
 .formulario input[type="button"] {
-    width: 60%;
-    margin: auto;
-    border: solid thin white;
+    width: 100%; /* Ancho completo del botón dentro del formulario */
+    margin-top: 1rem; /* Margen superior ajustado */
     padding: .7rem;
     border-radius: 2rem;
     background-color: rgb(234, 231, 18);
     font-weight: 600;
-    margin-top: 3rem;
-    font-size: .8rem;
+    font-size: .9rem;
     cursor: pointer;
     color: #222;
 }
+
 
 .sign-in {
     position: absolute;
@@ -149,3 +151,4 @@ body {
     opacity: 0;
     visibility: hidden;
 }
+

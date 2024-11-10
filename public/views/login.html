@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -32,9 +32,15 @@
         
             </div>
             <p class="cuenta-gratis">Crear una cuenta gratis</p>
-            <input type="text" placeholder="Nombre">
-            <input type="email" placeholder="Email">
+            <input type="text" placeholder="Nombre Completo">
+            <input type="user" placeholder="Nombre de usuario">
+            <input type="email" placeholder="correo">
             <input type="password" placeholder="Contraseña">
+            <p>selecciona tu rol de usuario:</p>
+            <p>Analista</p>
+            <input type="checkbox" name="rol" value="analista">
+            <p>Gestor</p>
+            <input type="checkbox" name="rol" value="gestor">
             <input type="button" value="Registrarse">
         </form>
     </div>
@@ -49,7 +55,7 @@
                 
             </div>
             <p class="cuenta-gratis">¿Aun no tienes una cuenta?</p>
-            <input type="email" placeholder="Email">
+            <input type="email" placeholder="Usuario">
             <input type="password" placeholder="Contraseña">
             <input type="button" value="Iniciar Sesion">
         </form>
@@ -61,7 +67,7 @@
             </div>
         </div>
     </div>
-    <script src="/public/js/login.js"></script>
+    <script src="/js/login.js"></script>
 </body>
 
 </html>
