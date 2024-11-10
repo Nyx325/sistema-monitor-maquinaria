@@ -3,6 +3,7 @@ import equipementRoutes from "./routes/EquipementRoutes.js";
 import locationRoutes from "./routes/LocationRoutes.js";
 import snapshotRoutes from "./routes/SnapshotRoutes.js";
 import cohRoutes from "./routes/COHRoutes.js";
+import fuelUsedRoutes from "./routes/FuelUsedRoutes.js";
 
 const apiRouter = Router();
 
@@ -10,5 +11,6 @@ apiRouter.use("/equipos", equipementRoutes);
 apiRouter.use("/localizacion", locationRoutes);
 apiRouter.use("/snapshot", snapshotRoutes);
 apiRouter.use("/coh", cohRoutes);
+apiRouter.use("/combustibleUsado", fuelUsedRoutes);
 
 export default apiRouter;

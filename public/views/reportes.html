@@ -1,38 +1,47 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard</title>
-    <link rel="stylesheet" href="/public/css/stylereport.css">
-</head>
-<body>
-     
+    <link rel="stylesheet" href="/public/css/stylereport.css" />
+  </head>
+  <body>
     <nav class="sidebar">
-        <br>
-        <h2> Reportes</h2>
-       <br>
-        <ul>
-            <li><a href="/public/views/dash.html">Volver al inicio</a></li>
-        </ul>
+      <br />
+      <h2>Reportes</h2>
+      <br />
+      <ul>
+        <li><a href="/public/views/dash.html">Volver al inicio</a></li>
+      </ul>
     </nav>
 
     <main class="main-content">
-        <header>
-            <img src="/public/assets/img/LogoMarsal.png" class="logo">
-            <h1>Sistema de monitoreo para activos MARSAL</h1>
-            <button onclick="logout()">Cerrar Sesión</button>
-        </header>
-        <br><br><br>
-        <section class="stats">
-            <a href="reporteUsuarios.html" class="card">Reporte general de promedios de todos los equipos <span id="usersCount"></span></a>
-            <a href="reporteMaquinaria.html" class="card">Reporte de tiempo operativo y cargas <span id="machinesCount"></span></a>
-            <a href="reporteLocalizacion.html" class="card">Reporte de análisis de códigos de error <span id="locationCount"></span></a>
-            <a href="reporteGeneral.html" class="card">Reporte de rendimiento del motor actividad e inactividad y productividad<span id="generalCount"></span></a>
-        </section>
-  
+      <header>
+        <img src="/public/assets/img/LogoMarsal.png" class="logo" />
+        <h1>Sistema de monitoreo para activos MARSAL</h1>
+        <button onclick="logout()">Cerrar Sesión</button>
+      </header>
+      <br /><br /><br />
+      <section class="stats">
+        <a href="reporteUsuarios.html" class="card"
+          >Reporte general de promedios de todos los equipos
+          <span id="usersCount"></span
+        ></a>
+        <a href="reporteMaquinaria.html" class="card"
+          >Reporte de tiempo operativo y cargas <span id="machinesCount"></span
+        ></a>
+        <a href="reporteLocalizacion.html" class="card"
+          >Reporte de análisis de códigos de error
+          <span id="locationCount"></span
+        ></a>
+        <a href="reporteGeneral.html" class="card"
+          >Reporte de rendimiento del motor actividad e inactividad y
+          productividad<span id="generalCount"></span
+        ></a>
+      </section>
     </main>
 
     <script src="/public/js/dash.js"></script>
-</body>
+  </body>
 </html>
