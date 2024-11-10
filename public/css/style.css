@@ -4,7 +4,6 @@
     box-sizing: border-box;
     font-family: 'Roboto', sans-serif;
 }
-
 body {
     height: 80vh;
     display: flex;
@@ -106,13 +105,11 @@ body {
     padding: 2rem 0;
 }
 
-.formulario input[type="text"],
-.formulario input[type="user"],
-.formulario input[type="email"],
-.formulario input[type="password"] {
-    width: 100%; /* Ocupa todo el ancho del formulario */
+.formulario input {
+    width: 70%;
     display: block;
-    margin: 1rem 0; /* Margen superior e inferior */
+    margin: auto;
+    margin-bottom: 2rem;
     background-color: transparent;
     border: none;
     border-bottom: rgb(250, 240, 59) thin solid;
@@ -120,21 +117,22 @@ body {
     outline: none;
     padding: .2rem 0;
     font-size: .9rem;
-    color: rgb(0, 0, 0); /* Color de texto */
+    color: rgb(255, 255, 255);
 }
 
 .formulario input[type="button"] {
-    width: 100%; /* Ancho completo del botón dentro del formulario */
-    margin-top: 1rem; /* Margen superior ajustado */
+    width: 80%;
+    margin: auto;
+    border: solid thin white;
     padding: .7rem;
     border-radius: 2rem;
     background-color: rgb(234, 231, 18);
     font-weight: 600;
-    font-size: .9rem;
+    margin-top: 3rem;
+    font-size: .8rem;
     cursor: pointer;
     color: #222;
 }
-
 
 .sign-in {
     position: absolute;
@@ -151,4 +149,3 @@ body {
     opacity: 0;
     visibility: hidden;
 }
-
