@@ -1,3 +1,7 @@
+function logout() {
+    alert("Cerrando sesión...");
+   
+}
 document.addEventListener("DOMContentLoaded", function() {
     const logo = document.querySelector("img"); 
     
