@@ -11,3 +11,7 @@ export type COHWithSnapshot = Prisma.CumulativeOperatingHoursGetPayload<{
 export type FuelUsedWithSnapshot = Prisma.FuelUsedGetPayload<{
   include: { snapshot: true };
 }>;
+
+export type FuelUsed24WithSnapshot = Prisma.FuelUsedLast24GetPayload<{
+  include: { snapshot: true };
+}>;

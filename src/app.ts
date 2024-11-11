@@ -50,4 +50,8 @@ router.get("/combustibleUsado", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/views/fuelUsed.html"));
 });
 
+router.get("/combustibleUsado24", (_req, res) => {
+  res.sendFile(path.join(__dirname, "../public/views/fuelUsed24.html"));
+});
+
 export default router;
