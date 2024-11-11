@@ -4,13 +4,12 @@
     box-sizing: border-box;
     font-family: 'Roboto', sans-serif;
 }
-
 body {
     height: 80vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-image: url(/public/assets/img/3.jpg);
+    background-image: url(/assets/img/3.jpg);
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -19,12 +18,13 @@ body {
 
 .container-form {
     color: black;
-    width: 90%;
-    height: 90vh;
+    width: 125%;
+    height: 120vh;
     display: flex;
     justify-content: space-around;
     transition:  all .5s ease-out;
 }
+
 
 .welcome-back {
     display: flex;
@@ -121,7 +121,7 @@ body {
 }
 
 .formulario input[type="button"] {
-    width: 60%;
+    width: 80%;
     margin: auto;
     border: solid thin white;
     padding: .7rem;
