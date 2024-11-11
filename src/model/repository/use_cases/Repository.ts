@@ -44,10 +44,6 @@ export abstract class Repository<M, NM, I> implements IRepository<M, NM, I> {
       ),
     );
 
-    console.log(date);
-    console.log(startOfDay);
-    console.log(endOfDay);
-
     return {
       gte: startOfDay,
       lte: endOfDay,
