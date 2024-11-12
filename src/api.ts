@@ -5,6 +5,7 @@ import snapshotRoutes from "./routes/SnapshotRoutes.js";
 import cohRoutes from "./routes/COHRoutes.js";
 import fuelUsedRoutes from "./routes/FuelUsedRoutes.js";
 import fuelUsedLast24Routes from "./routes/FuelUsedLast24Routes.js";
+import distanceRoutes from "./routes/DistanceRoutes.js";
 
 const apiRouter = Router();
 
@@ -14,5 +15,6 @@ apiRouter.use("/snapshot", snapshotRoutes);
 apiRouter.use("/coh", cohRoutes);
 apiRouter.use("/combustibleUsado", fuelUsedRoutes);
 apiRouter.use("/combustibleUsado24", fuelUsedLast24Routes);
+apiRouter.use("/distancia", distanceRoutes);
 
 export default apiRouter;
