@@ -24,6 +24,7 @@ export class Table<T extends Record<string, unknown>> {
 
     const titleRow = document.createElement("tr");
     const titleCell = document.createElement("th");
+    titleCell.colSpan = this.headers.length;
     titleCell.innerText = this.title;
     titleRow.appendChild(titleCell);
     this.table.appendChild(titleRow);
