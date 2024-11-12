@@ -89,10 +89,10 @@ model FuelUsedLast24 {
 
 model Distance {
   distance_id    Int      @id @default(autoincrement())
-  odometer       Float
-  odometer_units String   @db.Text
   active         Boolean  @default(true)  
   date_time      DateTime
+  odometer       Float
+  odometer_units String   @db.Text
   snapshot_id    Int?     
   snapshot       ApiSnapshot? @relation(fields: [snapshot_id], references: [snapshot_id])
 }

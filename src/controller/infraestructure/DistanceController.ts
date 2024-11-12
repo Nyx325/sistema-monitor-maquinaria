@@ -167,32 +167,33 @@ export class DistanceController extends Controller {
 
   protected async performGetBy(r: Request): Promise<unknown> {
     const {
-      distance_id,
+      distanceId,
       odometer,
-      odometer_units,
+      odometerUnits,
       active,
-      date_time,
+      dateTime,
       pageNumber = "1",
-    } = r.body;
+    } = r.query;
 
     const msg = [];
 
     const distance: Partial<Distance> = {
       active: active !== "false",
       odometer: odometer !== undefined ? Number(odometer) : undefined,
-      date_time: new Date(date_time),
+      date_time:
+        dateTime !== undefined ? new Date(String(dateTime)) : undefined,
       odometer_units:
-        odometer_units !== undefined ? String(odometer_units) : undefined,
-      distance_id: distance_id !== undefined ? Number(distance_id) : undefined,
+        odometerUnits !== undefined ? String(odometerUnits) : undefined,
+      distance_id: distanceId !== undefined ? Number(distanceId) : undefined,
     };
 
     const validation = this.validateInt({
-      input: pageNumber,
+      input: String(pageNumber),
       valueName: "número de página",
       positiveNumber: true,
     });
 
-    if (isNaN(Date.parse(date_time)))
+    if (dateTime !== undefined && isNaN(Date.parse(String(dateTime))))
       msg.push("formato de fecha y hora inválidos");
 
     const keys = Object.keys(distance) as Array<keyof Distance>;

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+
+    <link rel="stylesheet" href="/css/styleEq.css" />
+    <script type="module" src="/scripts/distance.js"></script>
+
+    <title>Combustible usado</title>
+  </head>
+  <body class="container">
+    <dialog id="distance-modal" class="container">
+      <div id="distance-alert" class="alert alert-danger d-none"></div>
+      <form class="container">
+        <legend id="form-title">Agregar consumo de combustible</legend>
+        <div id="serial-number">
+          <label id="serial-number-label" for="serial-number-input"
+            >Número de serie</label
+          >
+          <input id="serial-number-input" type="text" name="" value="" />
+        </div>
+        <div id="odometer">
+          <label id="odometer-label" for="odometer-input">Odometro</label>
+          <input id="odometer-input" type="text" name="" value="" />
+        </div>
+        <div id="odometer-units">
+          <label id="odometer-label" for="odometer-units-input"
+            >Unidades odometro</label
+          >
+          <input id="odometer-units-input" type="text" name="" value="" />
+        </div>
+        <div id="datetime">
+          <label id="datetime-label" for="datetime-input">Fecha y hora</label>
+          <input id="datetime-input" type="datetime-local" name="" value="" />
+        </div>
+        <section id="activity-section" class="d-none">
+          <div class="form-check">
+            <label class="form-check-label" for="active-true">Si</label>
+            <input
+              id="active-true"
+              type="radio"
+              name="opcion"
+              value="true"
+              class="form-check-input"
+            />
+          </div>
+          <div class="form-check">
+            <label class="form-check-label" for="active-false">No</label>
+            <input
+              id="active-false"
+              type="radio"
+              name="opcion"
+              value="false"
+              class="form-check-input"
+            />
+          </div>
+        </section>
+
+        <button id="acept-btn" type="button" class="btn btn-success">
+          Aceptar
+        </button>
+        <button id="cancel-btn" type="button" class="btn btn-danger">
+          Cancelar
+        </button>
+      </form>
+    </dialog>
+
+    <main>
+      <div>
+        <button id="add-distance" type="button" class="btn btn-success">
+          Agregar
+        </button>
+
+        <button id="update-distance" type="button" class="btn btn-primary">
+          Modificar
+        </button>
+        <button id="delete-distance" type="button" class="btn btn-danger">
+          Eliminar
+        </button>
+      </div>
+      <table id="distance-records" class="table">
+        <!--Registros generados dinamicamente-->
+      </table>
+    </main>
+  </body>
+</html>

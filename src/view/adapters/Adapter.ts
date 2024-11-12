@@ -20,8 +20,6 @@ export class Adapter {
    * @returns Una promesa que resuelve con la respuesta de la API.
    */
   async add(model: { [key: string]: unknown }): Promise<Response> {
-    console.log("Model");
-    console.log(model);
     return await fetch(`${this.utils.apiUrl}/${this.endpoint}`, {
       method: "POST",
       headers: {
@@ -67,10 +65,7 @@ export class Adapter {
     criteria: { [key: string]: unknown },
     pageNumber: number,
   ): Promise<Response> {
-    console.log(`Criteria:`);
-    console.log(criteria);
     const params = this.utils.createParams(criteria);
-    console.log(`Params: ${params}`);
     return await fetch(
       `${this.utils.apiUrl}/${this.endpoint}?pageNumber=${pageNumber}&${params}`,
     );

@@ -54,4 +54,8 @@ router.get("/combustibleUsado24", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/views/fuelUsed24.html"));
 });
 
+router.get("/distancia", (_req, res) => {
+  res.sendFile(path.join(__dirname, "../public/views/distance.html"));
+});
+
 export default router;
