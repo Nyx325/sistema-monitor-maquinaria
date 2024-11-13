@@ -62,4 +62,8 @@ router.get("/distancia", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/views/distance.html"));
 });
 
+router.get("/cih", (_req, res) => {
+  res.sendFile(path.join(__dirname, "../public/views/cih.html"));
+});
+
 export default router;

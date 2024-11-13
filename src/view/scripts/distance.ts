@@ -1,15 +1,6 @@
 import { DistanceWithSnapshot } from "../../model/entities/ModelsWithSnapshot.js";
 import { View } from "./view.js";
 
-/*
-    distance_id: number;
-    active: boolean;
-    date_time: Date;
-    odometer: number;
-    odometer_units: string;
-    snapshot_id: number | null;
-*/
-
 class DistanceView extends View<DistanceWithSnapshot> {
   constructor() {
     super({
@@ -68,7 +59,6 @@ class DistanceView extends View<DistanceWithSnapshot> {
   protected initialize(): void {
     super.initialize();
     this.initTable().then();
-    this.initCrudBtns();
   }
 
   protected initForm(): void {
@@ -146,11 +136,13 @@ class DistanceView extends View<DistanceWithSnapshot> {
   }
 
   protected addBtnAction(): void {
+    this.form.legend.innerText = "Agregar un registro";
     this.form.activity.setVisible(false);
     this.form.inputs.serialNumber.setVisible(true);
   }
 
   protected updateBtnAction(record: DistanceWithSnapshot): void {
+    this.form.legend.innerText = "Actualizar un registro";
     this.form.activity.setVisible(true);
     this.form.inputs.serialNumber.setVisible(false);
 

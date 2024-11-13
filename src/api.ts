@@ -6,6 +6,7 @@ import cohRoutes from "./routes/COHRoutes.js";
 import fuelUsedRoutes from "./routes/FuelUsedRoutes.js";
 import fuelUsedLast24Routes from "./routes/FuelUsedLast24Routes.js";
 import distanceRoutes from "./routes/DistanceRoutes.js";
+import cihRoutes from "./routes/CIHRoutes.js";
 
 const apiRouter = Router();
 
@@ -16,5 +17,6 @@ apiRouter.use("/coh", cohRoutes);
 apiRouter.use("/combustibleUsado", fuelUsedRoutes);
 apiRouter.use("/combustibleUsado24", fuelUsedLast24Routes);
 apiRouter.use("/distancia", distanceRoutes);
+apiRouter.use("/cih", cihRoutes);
 
 export default apiRouter;
