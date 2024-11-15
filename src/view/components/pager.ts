@@ -17,7 +17,7 @@ export default class Pager<T extends Record<string, unknown>> {
 
   constructor({
     container,
-    maxBtns = 10,
+    maxBtns,
     view,
     table,
   }: {
@@ -31,10 +31,10 @@ export default class Pager<T extends Record<string, unknown>> {
     this.table = table;
     this.maxBtns = maxBtns;
     this.btns = {
-      prev: new Button("Anterior"),
-      next: new Button("Siguiente"),
-      first: new Button("Inicio"),
-      last: new Button("Fin"),
+      prev: new Button("←"),
+      next: new Button("→"),
+      first: new Button("1"),
+      last: new Button(),
       pages: [],
     };
 
@@ -43,6 +43,12 @@ export default class Pager<T extends Record<string, unknown>> {
   }
 
   private initNavigationBtns() {
+    Object.values(this.btns).forEach((btn) => {
+      if (btn instanceof Button) {
+        btn.addClass("page-btn");
+      }
+    });
+
     this.btns.first.onClick(() => {
       this.table.lastSearch.currentPage = 1;
       this.view.refreshTable();
@@ -89,6 +95,8 @@ export default class Pager<T extends Record<string, unknown>> {
     // Crear botones de páginas numéricas
     const btnsArr = this.pageNumbers(pages);
 
+    this.btns.last.setText(s.totalPages);
+
     this.container.innerHTML = ""; // Limpiar contenedor
     this.container.appendChild(this.btns.first.button);
     this.container.appendChild(this.btns.prev.button);
@@ -96,6 +104,8 @@ export default class Pager<T extends Record<string, unknown>> {
     // Renderizar botones de páginas numéricas
     btnsArr.forEach((pageNumber) => {
       const btn = new Button(pageNumber.toString());
+      btn.addClass("page-btn");
+      if (s.currentPage === pageNumber) btn.addClass("current-page");
       btn.onClick(() => {
         this.table.lastSearch.currentPage = pageNumber;
         this.view.refreshTable();

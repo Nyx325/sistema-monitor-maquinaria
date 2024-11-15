@@ -92,7 +92,7 @@ export abstract class View<T extends Record<string, unknown>> {
       container: opts.pagerContainer,
       view: this,
       table: this.table,
-      maxBtns: 10,
+      maxBtns: 5,
     });
 
     this.initialize();
@@ -118,8 +118,6 @@ export abstract class View<T extends Record<string, unknown>> {
     }
 
     const search: Search<T> = JSON.parse(await response.text());
-    console.log(lastS);
-    console.log(search);
 
     this.table.lastSearch = search;
     this.table.render();
