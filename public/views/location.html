@@ -22,43 +22,49 @@
   </head>
   <header class="header">
     <div class="logo-container">
-        <img src="/assets/img/LogoMarsal.png" class="logo">
-        <h2>Sistema de monitoreo para activos MARSAL</h2>
+      <img src="/assets/img/LogoMarsal.png" class="logo" />
+      <h2>Sistema de monitoreo para activos MARSAL</h2>
     </div>
     <button class="logout-button" onclick="logout()">Cerrar Sesión</button>
-</header>
-<br>
+  </header>
+  <br />
   <body class="container">
     <dialog id="location-modal" class="container">
       <div id="location-alert" class="alert alert-danger d-none"></div>
       <form class="container">
         <legend id="form-title">Agregar localizacion</legend>
-        <div>
-          <label for="serial-number-input">Número de serie</label>
+        <div id="serial-number">
+          <label id="serial-number-label" for="serial-number-input"
+            >Número de serie</label
+          >
           <input id="serial-number-input" type="text" name="" value="" />
         </div>
-        <div>
-          <label for="longitude-input">Longitud</label>
+        <div id="longitude">
+          <label id="longitude-label" for="longitude-input">Longitud</label>
           <input id="longitude-input" type="text" name="" value="" />
         </div>
-        <div>
-          <label for="latitude-input">Latitud</label>
+        <div id="latitude">
+          <label id="latitude-label" for="latitude-input">Latitud</label>
           <input id="latitude-input" type="text" name="" value="" />
         </div>
-        <div>
-          <label for="altitude-input">Altitud</label>
+        <div id="altitude">
+          <label id="altitude-label" for="altitude-input">Altitud</label>
           <input id="altitude-input" type="text" name="" value="" />
         </div>
-        <div>
-          <label for="altitude-units-input">Unidades altitud</label>
+        <div id="altitude-units">
+          <label id="altitude-units-label" for="altitude-units-input"
+            >Unidades altitud</label
+          >
           <input id="altitude-units-input" type="text" name="" value="" />
         </div>
-        <div>
-          <label for="china-id-input">ID de coordenadas chinas</label>
+        <div id="china-id">
+          <label id="china-id-label" for="china-id-input"
+            >ID de coordenadas chinas</label
+          >
           <input id="china-id-input" type="text" name="" value="" />
         </div>
-        <div>
-          <label for="datetime-input">Fecha</label>
+        <div id="datetime">
+          <label id="datetime-label" for="datetime-input">Fecha</label>
           <input id="datetime-input" type="datetime-local" name="" value="" />
         </div>
         <section id="activity-section" class="d-none">
@@ -85,10 +91,10 @@
         </section>
 
         <button id="acept-btn" type="button" class="btn btn-success">
-          Aceptar 
+          Aceptar
         </button>
         <button id="cancel-btn" type="button" class="btn btn-danger">
-          Cancelar 
+          Cancelar
         </button>
       </form>
     </dialog>
@@ -107,8 +113,7 @@
         </button>
       </div>
       <table id="location-records" class="table"></table>
-     
+      <nav id="pager" class="pager"></nav>
     </main>
-    <script src="/js/equipos.js"></script>
   </body>
 </html>

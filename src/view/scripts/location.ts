@@ -1,230 +1,146 @@
-import { Table } from "../components/table.js";
-import { Adapter } from "../adapters/Adapter.js";
-import Modal from "../components/modal.js";
-import Alert from "../components/alert.js";
-import { Search } from "../../model/entities/Search.js";
 import { LocationWithSnapshot } from "../../model/entities/ModelsWithSnapshot.js";
+import { View } from "./view.js";
 
-class LocationView {
-  private form: {
-    alert: Alert;
-    legend: HTMLLegendElement;
-    adding: boolean;
-    inputs: {
-      serialNumber: HTMLInputElement;
-      longitude: HTMLInputElement;
-      latitude: HTMLInputElement;
-      altitude: HTMLInputElement;
-      altitudeUnits: HTMLInputElement;
-      chinaId: HTMLInputElement;
-      dateTime: HTMLInputElement;
-    };
-    activitySection: {
-      container: HTMLElement;
-      true: HTMLInputElement;
-      false: HTMLInputElement;
-    };
-    aceptBtn: HTMLButtonElement;
-    cancelBtn: HTMLButtonElement;
-  };
-
-  private crudBtns: {
-    add: HTMLButtonElement;
-    update: HTMLButtonElement;
-    delete: HTMLButtonElement;
-  };
-
-  private modal: Modal;
-  private table: Table<LocationWithSnapshot>;
-  private adapter: Adapter = new Adapter("localizacion");
-
+class LocationView extends View<LocationWithSnapshot> {
   constructor() {
-    this.table = new Table("location-records");
-    this.modal = new Modal("location-modal");
-
-    this.form = {
-      alert: new Alert("location-alert"),
-      legend: document.getElementById("form-title") as HTMLLegendElement,
-      adding: false,
-      inputs: {
-        serialNumber: document.getElementById(
-          "serial-number-input",
-        ) as HTMLInputElement,
-        chinaId: document.getElementById("china-id-input") as HTMLInputElement,
-        altitude: document.getElementById("altitude-input") as HTMLInputElement,
-        longitude: document.getElementById(
-          "longitude-input",
-        ) as HTMLInputElement,
-        latitude: document.getElementById("latitude-input") as HTMLInputElement,
-        altitudeUnits: document.getElementById(
-          "altitude-units-input",
-        ) as HTMLInputElement,
-        dateTime: document.getElementById("datetime-input") as HTMLInputElement,
+    super({
+      alert: "location-alert",
+      legend: "form-title",
+      activity: {
+        container: "activity-section",
+        true: "active-true",
+        false: "active-false",
       },
-      activitySection: {
-        container: document.getElementById("activity-section") as HTMLElement,
-        true: document.getElementById("active-true") as HTMLInputElement,
-        false: document.getElementById("active-false") as HTMLInputElement,
-      },
-      aceptBtn: document.getElementById("acept-btn") as HTMLButtonElement,
-      cancelBtn: document.getElementById("cancel-btn") as HTMLButtonElement,
-    };
-
-    this.crudBtns = {
-      add: document.getElementById("add-location") as HTMLButtonElement,
-      delete: document.getElementById("delete-location") as HTMLButtonElement,
-      update: document.getElementById("update-location") as HTMLButtonElement,
-    };
-
-    this.initialize();
+      aceptBtn: "acept-btn",
+      cancelBtn: "cancel-btn",
+      addBtn: "add-location",
+      updateBtn: "update-location",
+      deleteBtn: "delete-location",
+      modalId: "location-modal",
+      tableId: "location-records",
+      adapterEndpoint: "localizacion",
+      pagerContainer: "pager",
+      inputs: [
+        {
+          key: "serialNumber",
+          inputOpts: {
+            containerId: "serial-number",
+            labelId: "serial-number-label",
+            inputId: "serial-number-input",
+          },
+        },
+        {
+          key: "longitude",
+          inputOpts: {
+            containerId: "longitude",
+            labelId: "longitude-label",
+            inputId: "longitude-input",
+          },
+        },
+        {
+          key: "latitude",
+          inputOpts: {
+            containerId: "latitude",
+            labelId: "latitude-label",
+            inputId: "latitude-input",
+          },
+        },
+        {
+          key: "altitude",
+          inputOpts: {
+            containerId: "altitude",
+            labelId: "altitude-label",
+            inputId: "altitude-input",
+          },
+        },
+        {
+          key: "altitudeUnits",
+          inputOpts: {
+            containerId: "altitude-units",
+            labelId: "altitude-units-label",
+            inputId: "altitude-units-input",
+          },
+        },
+        {
+          key: "chinaId",
+          inputOpts: {
+            containerId: "china-id",
+            labelId: "china-id-label",
+            inputId: "china-id-input",
+          },
+        },
+        {
+          key: "datetime",
+          inputOpts: {
+            containerId: "datetime",
+            labelId: "datetime-label",
+            inputId: "datetime-input",
+          },
+        },
+      ],
+    });
   }
 
-  private initialize() {
-    Promise.all([
-      this.initTable().then(),
-      this.initCrudBtns(),
-      this.initForm(),
-    ]).then();
+  protected initialize(): void {
+    super.initialize();
+    this.initTable().then();
+    this.pager.render();
   }
 
-  private async initTable() {
-    this.table.setTitle("Localización");
-
-    this.table.setHeaders([
-      "Numero de serie",
-      "Fecha",
-      "Longitud",
-      "Latitud",
-      "Altitud",
-      "Unidades Altitud",
-      "ID Coordenadas chinas",
-    ]);
+  protected async initTable(): Promise<void> {
+    await super.initTable({
+      title: "Equipos",
+      headers: [
+        "Numero de serie",
+        "Fecha",
+        "Longitud",
+        "Latitud",
+        "Altitud",
+        "Unidades Altitud",
+        "ID Coordenadas chinas",
+      ],
+    });
 
     this.table.onParseData((record) => {
       return [
-        String(record.snapshot?.serial_number),
-        String(record.date_time),
-        String(record.longitude),
-        String(record.latitude),
-        String(record.altitude),
-        String(record.altitude_units),
-        String(record.china_coordinate_id),
+        `${record.snapshot?.serial_number}`,
+        `${record.date_time}`,
+        `${record.longitude}`,
+        `${record.latitude}`,
+        `${record.altitude}`,
+        `${record.altitude_units}`,
+        `${record.china_coordinate_id}`,
       ];
     });
+
+    this.table.lastSearch = {
+      result: [],
+      criteria: { active: true },
+      totalPages: 1,
+      currentPage: 1,
+    };
 
     this.refreshTable();
   }
 
-  private async refreshTable() {
-    const lastS = this.table.lastSearch;
-
-    const response = await this.adapter.getBy(
-      lastS?.criteria ?? { active: true },
-      lastS?.currentPage ?? 1,
-    );
-
-    if (response.status >= 400) {
-      const e = JSON.parse(await response.text());
-      console.error(e.message);
-      return;
-    }
-
-    const search: Search<LocationWithSnapshot> = JSON.parse(
-      await response.text(),
-    );
-
-    this.table.lastSearch = search;
-    this.table.render();
-  }
-
-  private initCrudBtns(): void {
-    this.crudBtns.add.addEventListener("click", () => {
-      this.form.inputs.serialNumber.classList.remove("d-none");
-      this.form.activitySection.container.classList.add("d-none");
-      this.form.adding = true;
-      this.modal.show(true);
-    });
-
-    this.crudBtns.update.addEventListener("click", () => {
-      this.form.adding = false;
-      const lastSelected = this.table.lastSelected;
-      if (!lastSelected) return;
-
-      const l = lastSelected.record;
-
-      const { longitude, latitude, altitude, altitudeUnits, chinaId } =
-        this.form.inputs;
-
-      longitude.value = String(l.longitude);
-      latitude.value = String(l.latitude);
-      altitude.value = String(l.altitude);
-      altitudeUnits.value = String(l.altitude_units);
-      chinaId.value = String(l.china_coordinate_id);
-
-      this.form.inputs.serialNumber.classList.add("d-none");
-      this.form.activitySection.container.classList.remove("d-none");
-      this.setActivitySelection(!!l.active);
-
-      this.modal.show(true);
-    });
-
-    this.crudBtns.delete.addEventListener("click", async () => {
-      const lastSelected = this.table.lastSelected;
-      if (!lastSelected) return;
-
-      const l = lastSelected.record;
-      const response = await this.adapter.delete(l.location_id as number);
-      if (response.status >= 400) {
-        const e = JSON.parse(await response.text());
-        console.error(e.message);
-      }
-
-      this.refreshTable();
-    });
-  }
-
-  private getActivitySelection(): boolean | undefined {
-    if (this.form.activitySection.true.checked) return true;
-    if (this.form.activitySection.false.checked) return false;
-    return undefined;
-  }
-
-  private setActivitySelection(value: boolean): void {
-    this.form.activitySection.true.checked = value;
-    this.form.activitySection.false.checked = !value;
-  }
-
-  private clearFormFields(): void {
-    Object.values(this.form.inputs).forEach((input) => {
-      input.value = "";
-    });
-  }
-
-  private initForm() {
-    this.form.cancelBtn.addEventListener("click", () => {
-      Promise.all([
-        this.form.alert.setVisible(false),
-        this.modal.show(false),
-        this.clearFormFields(),
-      ]).then();
-    });
+  protected initForm(): void {
+    super.initForm();
 
     this.form.aceptBtn.addEventListener("click", async () => {
-      const inputs = this.form.inputs;
-      const longitude = inputs.longitude.value.trim();
-      const latitude = inputs.longitude.value.trim();
-      const altitude = inputs.altitude.value.trim();
-      const altitude_units = inputs.altitudeUnits.value.trim();
-      const china_coordinate_id = inputs.chinaId.value.trim();
-      const date_time = inputs.dateTime.value.trim();
-      const serial_number = inputs.serialNumber.value.trim();
-      const active = this.getActivitySelection();
+      const i = this.form.inputs;
+      const serial_number = i.serialNumber.getValue();
+      const longitude = i.longitude.getValue();
+      const latitude = i.latitude.getValue();
+      const altitude = i.altitude.getValue();
+      const altitude_units = i.altitudeUnits.getValue();
+      const china_coordinate_id = i.chinaId.getValue();
+      const date_time = i.datetime.getValue();
+      const active = this.form.activity.getSelection();
 
-      let location;
-      let response;
-
+      let record;
+      let res;
       if (this.form.adding) {
-        location = {
+        record = {
           date_time,
           china_coordinate_id,
           altitude_units,
@@ -233,7 +149,7 @@ class LocationView {
           latitude,
           serial_number,
         };
-        response = await this.adapter.add(location);
+        res = await this.adapter.add(record);
       } else {
         if (this.table.lastSelected === undefined) {
           console.error("No se seleccionó un elemento");
@@ -242,7 +158,7 @@ class LocationView {
 
         const selected = this.table.lastSelected;
 
-        location = {
+        record = {
           location_id: selected.record.location_id,
           snapshot_id: selected.record.snapshot_id,
           active,
@@ -254,11 +170,11 @@ class LocationView {
           latitude,
         };
 
-        response = await this.adapter.update(location);
+        res = await this.adapter.update(record);
       }
 
-      if (response.status >= 400) {
-        const e = JSON.parse(await response.text());
+      if (res.status >= 400) {
+        const e = JSON.parse(await res.text());
         this.form.alert.setMessage(e.message);
         this.form.alert.setVisible(true);
         return;
@@ -268,6 +184,27 @@ class LocationView {
       this.modal.show(false);
       this.refreshTable();
     });
+  }
+
+  protected addBtnAction(): void {
+    this.form.inputs.serialNumber.setVisible(true);
+  }
+
+  protected updateBtnAction(record: LocationWithSnapshot): void {
+    this.form.inputs.serialNumber.setVisible(false);
+
+    const i = this.form.inputs;
+    i.longitude.setValue(record.longitude);
+    i.latitude.setValue(record.latitude);
+    i.altitude.setValue(record.altitude);
+    i.altitudeUnits.setValue(record.altitude_units);
+    i.chinaId.setValue(record.china_coordinate_id);
+    i.datetime.setValue(record.date_time);
+    this.form.activity.setSelection(record.active);
+  }
+
+  protected getRecordId(record: LocationWithSnapshot): unknown {
+    return record.location_id;
   }
 }
 

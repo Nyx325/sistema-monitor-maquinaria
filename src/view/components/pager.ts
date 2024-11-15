@@ -98,6 +98,7 @@ export default class Pager<T extends Record<string, unknown>> {
     this.btns.last.setText(s.totalPages);
 
     this.container.innerHTML = ""; // Limpiar contenedor
+    if (s.totalPages <= 1) return;
     this.container.appendChild(this.btns.first.button);
     this.container.appendChild(this.btns.prev.button);
 
