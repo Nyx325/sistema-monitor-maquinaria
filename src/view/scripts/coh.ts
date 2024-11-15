@@ -1,220 +1,116 @@
-import { Adapter } from "../adapters/Adapter.js";
-import Alert from "../components/alert.js";
-import Modal from "../components/modal.js";
-import { Table } from "../components/table.js";
 import { COHWithSnapshot } from "../../model/entities/ModelsWithSnapshot.js";
-import { Search } from "../../model/entities/Search.js";
+import { View } from "./view.js";
 
-class COHView {
-  private form: {
-    alert: Alert;
-    legend: HTMLLegendElement;
-    adding: boolean;
-    inputs: {
-      serialNumberI: HTMLInputElement;
-      hoursI: HTMLInputElement;
-      dateTimeI: HTMLInputElement;
-    };
-    activity: {
-      container: HTMLElement;
-      true: HTMLInputElement;
-      false: HTMLInputElement;
-    };
-    aceptBtn: HTMLButtonElement;
-    cancelBtn: HTMLButtonElement;
-  };
-
-  private crudBtns: {
-    add: HTMLButtonElement;
-    update: HTMLButtonElement;
-    delete: HTMLButtonElement;
-  };
-
-  private table: Table<COHWithSnapshot>;
-  private modal: Modal;
-  private adapter: Adapter = new Adapter("coh");
-  private adapterSnapshot: Adapter = new Adapter("snapshot");
-
+class COHView extends View<COHWithSnapshot> {
   constructor() {
-    this.table = new Table("coh-records");
-    this.modal = new Modal("coh-modal");
-
-    this.form = {
-      adding: false,
-      alert: new Alert("coh-alert"),
-      legend: document.getElementById("form-title") as HTMLLegendElement,
-      inputs: {
-        serialNumberI: document.getElementById(
-          "serial-number-input",
-        ) as HTMLInputElement,
-        hoursI: document.getElementById("hour-input") as HTMLInputElement,
-        dateTimeI: document.getElementById(
-          "datetime-input",
-        ) as HTMLInputElement,
-      },
+    super({
+      adapterEndpoint: "coh",
+      alert: "alert",
+      modalId: "modal",
+      tableId: "records",
+      legend: "form-title",
+      aceptBtn: "acept",
+      cancelBtn: "cancel",
+      addBtn: "add",
+      updateBtn: "update",
+      deleteBtn: "delete",
+      pagerContainer: "pager",
       activity: {
-        container: document.getElementById("activity-section") as HTMLElement,
-        true: document.getElementById("active-true") as HTMLInputElement,
-        false: document.getElementById("active-false") as HTMLInputElement,
+        container: "activity-section",
+        true: "active-true",
+        false: "active-false",
       },
-      aceptBtn: document.getElementById("acept-btn") as HTMLButtonElement,
-      cancelBtn: document.getElementById("cancel-btn") as HTMLButtonElement,
-    };
-
-    this.crudBtns = {
-      add: document.getElementById("add-coh") as HTMLButtonElement,
-      delete: document.getElementById("delete-coh") as HTMLButtonElement,
-      update: document.getElementById("update-coh") as HTMLButtonElement,
-    };
-
-    this.initialize();
+      inputs: [
+        {
+          key: "serialNumber",
+          inputOpts: {
+            containerId: "serial-number",
+            labelId: "serial-number-label",
+            inputId: "serial-number-input",
+          },
+        },
+        {
+          key: "hours",
+          inputOpts: {
+            containerId: "hours",
+            inputId: "hours-input",
+            labelId: "hours-label",
+          },
+        },
+        {
+          key: "datetime",
+          inputOpts: {
+            containerId: "datetime",
+            inputId: "datetime-input",
+            labelId: "datetime-label",
+          },
+        },
+      ],
+    });
   }
 
-  private initialize(): void {
-    Promise.all([
-      this.initTable(),
-      this.initCrudBtns(),
-      this.initForm(),
-    ]).then();
+  protected initialize(): void {
+    super.initialize();
+    this.initTable().then();
   }
 
-  private async initTable(): Promise<void> {
-    this.table.setTitle("Horas operativas acumuladas");
-
-    this.table.setHeaders([
-      "Numero de serie",
-      "Fecha y hora",
-      "Acumulado de horas",
-    ]);
+  protected async initTable(): Promise<void> {
+    await super.initTable({
+      title: "Horas operativas acumuladas",
+      headers: ["Numero de serie", "Fecha y Hora", "Horas"],
+    });
 
     this.table.onParseData((record) => {
       return [
-        String(record.snapshot?.serial_number),
-        String(record.date_time),
-        String(record.hour),
+        `${record.snapshot?.serial_number}`,
+        `${record.date_time}`,
+        `${record.hour}`,
       ];
     });
+
+    this.table.lastSearch = {
+      result: [],
+      criteria: { active: true },
+      totalPages: 1,
+      currentPage: 1,
+    };
 
     this.refreshTable();
   }
 
-  private async refreshTable() {
-    const lastS = this.table.lastSearch;
-
-    const res = await this.adapter.getBy(
-      lastS?.criteria ?? { active: true },
-      lastS?.currentPage ?? 1,
-    );
-
-    if (res.status >= 400) {
-      const e = JSON.parse(await res.text());
-      console.error(e.message);
-      return;
-    }
-
-    const search: Search<COHWithSnapshot> = JSON.parse(await res.text());
-    this.table.lastSearch = search;
-    this.table.render();
-  }
-
-  private initCrudBtns() {
-    this.crudBtns.add.addEventListener("click", () => {
-      this.form.inputs.serialNumberI.classList.remove("d-none");
-      this.form.activity.container.classList.add("d-none");
-      this.form.adding = true;
-      this.modal.show(true);
-    });
-
-    this.crudBtns.update.addEventListener("click", () => {
-      this.form.adding = false;
-      const lastS = this.table.lastSelected;
-      if (lastS === undefined) return;
-
-      const coh = lastS.record;
-      const { hoursI, dateTimeI } = this.form.inputs;
-      hoursI.value = String(coh.hour);
-      dateTimeI.value = String(coh.date_time);
-
-      this.form.inputs.serialNumberI.classList.add("d-none");
-      this.form.activity.container.classList.remove("d-none");
-      this.setActivitySelection(coh.active);
-
-      this.modal.show(true);
-    });
-
-    this.crudBtns.delete.addEventListener("click", async () => {
-      const lastSelected = this.table.lastSelected;
-      if (!lastSelected) return;
-
-      const coh = lastSelected.record;
-      const response = await this.adapter.delete(coh.coh_id);
-      if (response.status >= 400) {
-        const e = JSON.parse(await response.text());
-        console.error(e.message);
-      }
-
-      this.refreshTable();
-    });
-  }
-
-  private getActivitySelection(): boolean | undefined {
-    if (this.form.activity.true.checked) return true;
-    if (this.form.activity.false.checked) return false;
-    return undefined;
-  }
-
-  private setActivitySelection(value: boolean): void {
-    this.form.activity.true.checked = value;
-    this.form.activity.false.checked = !value;
-  }
-
-  private clearFormFields(): void {
-    Object.values(this.form.inputs).forEach((input) => {
-      input.value = "";
-    });
-  }
-
-  private initForm() {
-    this.form.cancelBtn.addEventListener("click", () => {
-      Promise.all([
-        this.form.alert.setVisible(false),
-        this.modal.show(false),
-        this.clearFormFields(),
-      ]).then();
-    });
-
+  protected initForm(): void {
+    super.initForm();
     this.form.aceptBtn.addEventListener("click", async () => {
-      const { serialNumberI, dateTimeI, hoursI } = this.form.inputs;
-      const serial_number = serialNumberI.value.trim();
-      const date_time = dateTimeI.value.trim();
-      const hour = hoursI.value.trim();
+      const i = this.form.inputs;
+      const serial_number = i.serialNumber.getValue();
+      const hour = i.hours.getValue();
+      const date_time = i.datetime.getValue();
+      const active = this.form.activity.getSelection();
 
-      let coh;
       let res;
       if (this.form.adding) {
-        coh = {
+        const record = {
           serial_number,
-          date_time,
           hour,
+          date_time,
         };
 
-        res = await this.adapter.add(coh);
+        res = await this.adapter.add(record);
       } else {
         if (this.table.lastSelected === undefined) {
           console.error("No se seleccionó un elemento");
           return;
         }
 
-        const sel = this.table.lastSelected.record;
-        coh = {
-          coh_id: sel.coh_id,
+        const s = this.table.lastSelected.record;
+        const record = {
+          coh_id: s.coh_id,
           hour,
           date_time,
-          active: this.getActivitySelection(),
-          snapshot_id: sel.snapshot_id,
+          active,
+          snapshot_id: s.snapshot_id,
         };
-
-        res = await this.adapter.update(coh);
+        res = await this.adapter.update(record);
       }
 
       if (res.status >= 400) {
@@ -228,6 +124,20 @@ class COHView {
       this.modal.show(false);
       this.refreshTable();
     });
+  }
+
+  protected addBtnAction(): void {}
+
+  protected updateBtnAction(record: COHWithSnapshot): void {
+    const i = this.form.inputs;
+    i.serialNumber.setValue(record.snapshot?.serial_number);
+    i.hours.setValue(record.hour);
+    i.datetime.setValue(record.date_time);
+    this.form.activity.setSelection(record.active);
+  }
+
+  protected getRecordId(record: COHWithSnapshot): unknown {
+    return record.coh_id;
   }
 }
 
