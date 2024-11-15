@@ -3,50 +3,54 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
       integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
       crossorigin="anonymous"
     />
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-      crossorigin="anonymous"
-    ></script>
-
     <link rel="stylesheet" href="/css/styleEq.css" />
-    <script type="module" src="/scripts/fuelUsed24.js"></script>
+    <script type="module" src="/scripts/fuelUsed.js"></script>
 
-    <title>Combustible usado</title>
+    <title>Combustible usado últimas 24 horas</title>
   </head>
   <header class="header">
     <div class="logo-container">
-        <img src="/assets/img/LogoMarsal.png" class="logo">
-        <h2>Sistema de monitoreo para activos MARSAL</h2>
+      <img src="/assets/img/LogoMarsal.png" class="logo" />
+      <h2>Sistema de monitoreo para activos MARSAL</h2>
     </div>
     <button class="logout-button" onclick="logout()">Cerrar Sesión</button>
-</header>
-<br><br>
+  </header>
   <body class="container">
-    <dialog id="fuel-used-modal" class="container">
-      <div id="fuel-used-alert" class="alert alert-danger d-none"></div>
+    <dialog id="modal" class="container">
+      <div id="alert" class="alert alert-danger d-none"></div>
       <form class="container">
-        <legend id="form-title">Agregar consumo de combustible</legend>
-        <div>
-          <label for="serial-number-input">Número de serie</label>
+        <legend id="form-title">Agregar registro</legend>
+        <div id="serial-number">
+          <label id="serial-number-label" for="serial-number-input"
+            >Número de serie</label
+          >
           <input id="serial-number-input" type="text" name="" value="" />
         </div>
-        <div>
-          <label for="fuel-consumed-input">Consumo de combustible</label>
+        <div id="fuel-consumed">
+          <label id="fuel-consumed-label" for="fuel-consumed-input"
+            >Consumo de combustible</label
+          >
           <input id="fuel-consumed-input" type="text" name="" value="" />
         </div>
-        <div>
-          <label for="fuel-units-input">Unidades de combustible</label>
+        <div id="fuel-units">
+          <label id="fuel-units-label" for="fuel-units-input"
+            >Unidades de combustible</label
+          >
           <input id="fuel-units-input" type="text" name="" value="" />
         </div>
-        <div>
-          <label for="datetime-input">Fecha y hora</label>
+        <div id="datetime">
+          <label id="datetime-label" for="datetime-input">Fecha y hora</label>
           <input id="datetime-input" type="datetime-local" name="" value="" />
         </div>
         <section id="activity-section" class="d-none">
@@ -72,31 +76,27 @@
           </div>
         </section>
 
-        <button id="acept-btn" type="button" class="btn btn-success">
+        <button id="acept" type="button" class="btn btn-success">
           Aceptar
         </button>
-        <button id="cancel-btn" type="button" class="btn btn-danger">
+        <button id="cancel" type="button" class="btn btn-danger">
           Cancelar
         </button>
       </form>
     </dialog>
 
-    <main>
-      <div>
-        <button id="add-fuel-used" type="button" class="btn btn-success">
-          Agregar
-        </button>
-
-        <button id="update-fuel-used" type="button" class="btn btn-primary">
+    <main class="container">
+      <section>
+        <button id="add" type="button" class="btn btn-success">Agregar</button>
+        <button id="update" type="button" class="btn btn-primary">
           Modificar
         </button>
-        <button id="delete-fuel-used" type="button" class="btn btn-danger">
+        <button id="delete" type="button" class="btn btn-danger">
           Eliminar
         </button>
-      </div>
-      <table id="fuel-used-records" class="table">
-      </table>
+      </section>
+      <table id="records" class="table"></table>
+      <nav id="pager" class="pager"></nav>
     </main>
-    <script src="/js/equipos.js"></script>
   </body>
 </html>

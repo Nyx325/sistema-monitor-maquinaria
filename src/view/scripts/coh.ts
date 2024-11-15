@@ -57,7 +57,7 @@ class COHView extends View<COHWithSnapshot> {
   protected async initTable(): Promise<void> {
     await super.initTable({
       title: "Horas operativas acumuladas",
-      headers: ["Numero de serie", "Fecha y Hora", "Horas"],
+      headers: ["Número de serie", "Fecha y hora", "Horas"],
     });
 
     this.table.onParseData((record) => {
