@@ -45,12 +45,13 @@ class CIHView extends View<CIHWithSnapshot> {
           },
         },
       ],
+      pagerContainer: "pager",
     });
   }
 
   protected initialize(): void {
-    super.initialize();
     this.initTable().then();
+    super.initialize();
   }
 
   protected async initTable(): Promise<void> {
@@ -60,12 +61,21 @@ class CIHView extends View<CIHWithSnapshot> {
     });
 
     this.table.onParseData((record) => {
-      return [
+      const arr = [
         String(record.snapshot?.serial_number),
         String(record.date_time),
         String(record.hour),
       ];
+      console.log(arr);
+      return arr;
     });
+
+    this.table.lastSearch = {
+      currentPage: 1,
+      totalPages: 1,
+      criteria: { active: true },
+      result: [],
+    };
   }
 
   protected addBtnAction(): void {

@@ -4,6 +4,7 @@ import Activity from "../components/activity.js";
 import Alert from "../components/alert.js";
 import LabeledInput from "../components/labeledInput.js";
 import Modal from "../components/modal.js";
+import Pager from "../components/pager.js";
 import { Table } from "../components/table.js";
 
 export abstract class View<T extends Record<string, unknown>> {
@@ -26,6 +27,7 @@ export abstract class View<T extends Record<string, unknown>> {
   protected modal: Modal;
   protected table: Table<T>;
   protected adapter: Adapter;
+  protected pager: Pager<T>;
 
   constructor(opts: {
     alert: string;
@@ -51,6 +53,7 @@ export abstract class View<T extends Record<string, unknown>> {
     modalId: string;
     tableId: string;
     adapterEndpoint: string;
+    pagerContainer: string;
   }) {
     const inputs: { [key: string]: LabeledInput } = {};
 
@@ -85,6 +88,12 @@ export abstract class View<T extends Record<string, unknown>> {
     this.table = new Table<T>(opts.tableId);
     this.modal = new Modal(opts.modalId);
     this.adapter = new Adapter(opts.adapterEndpoint);
+    this.pager = new Pager({
+      container: opts.pagerContainer,
+      view: this,
+      table: this.table,
+      maxBtns: 10,
+    });
 
     this.initialize();
   }
@@ -94,12 +103,12 @@ export abstract class View<T extends Record<string, unknown>> {
     this.initCrudBtns();
   }
 
-  protected async refreshTable() {
+  public async refreshTable() {
     const lastS = this.table.lastSearch;
 
     const response = await this.adapter.getBy(
-      lastS?.criteria ?? { active: true },
-      lastS?.currentPage ?? 1,
+      lastS.criteria,
+      lastS.currentPage,
     );
 
     if (response.status >= 400) {
@@ -109,9 +118,12 @@ export abstract class View<T extends Record<string, unknown>> {
     }
 
     const search: Search<T> = JSON.parse(await response.text());
+    console.log(lastS);
+    console.log(search);
 
     this.table.lastSearch = search;
     this.table.render();
+    this.pager.render();
   }
 
   protected async initTable(opts: { title: string; headers: string[] }) {

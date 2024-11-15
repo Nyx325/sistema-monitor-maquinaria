@@ -5,7 +5,7 @@ export class Table<T extends Record<string, unknown>> {
   private readonly table: HTMLTableElement;
   private title: string = "";
   private headers: string[] = [];
-  public lastSearch: Search<T> | undefined;
+  public lastSearch: Search<T>;
   public lastSelected:
     | {
         row: HTMLTableRowElement;
@@ -17,6 +17,13 @@ export class Table<T extends Record<string, unknown>> {
 
   constructor(id: string) {
     this.table = document.getElementById(id) as HTMLTableElement;
+
+    this.lastSearch = {
+      currentPage: 1,
+      totalPages: 1,
+      result: [],
+      criteria: {},
+    };
   }
 
   public render(): void {

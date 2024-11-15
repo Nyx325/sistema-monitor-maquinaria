@@ -53,12 +53,14 @@ class DistanceView extends View<DistanceWithSnapshot> {
           },
         },
       ],
+      pagerContainer: "pager",
     });
   }
 
   protected initialize(): void {
     super.initialize();
     this.initTable().then();
+    this.pager.render();
   }
 
   protected initForm(): void {
@@ -133,6 +135,13 @@ class DistanceView extends View<DistanceWithSnapshot> {
         String(record.odometer_units),
       ];
     });
+
+    this.table.lastSearch = {
+      currentPage: 1,
+      totalPages: 1,
+      criteria: { active: true },
+      result: [],
+    };
   }
 
   protected addBtnAction(): void {
