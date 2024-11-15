@@ -23,3 +23,7 @@ export type DistanceWithSnapshot = Prisma.DistanceGetPayload<{
 export type CIHWithSnapshot = Prisma.CumulativeIdleHoursGetPayload<{
   include: { snapshot: true };
 }>;
+
+export type FuelRemainingWithSnapshot = Prisma.FuelRemainingGetPayload<{
+  include: { snapshot: true };
+}>;
