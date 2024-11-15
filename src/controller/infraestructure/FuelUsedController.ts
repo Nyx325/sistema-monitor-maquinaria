@@ -181,7 +181,7 @@ export class FuelUsedController extends Controller {
       fuel_consumed,
       date_time,
       fuel_units,
-      pageNumer = "1",
+      pageNumber = "1",
     } = r.query;
 
     const criterio: Partial<FuelUsed> = {
@@ -196,14 +196,16 @@ export class FuelUsedController extends Controller {
 
     const msg = [];
 
+    console.log(`pageNumber en controaldor: ${pageNumber}`);
     const validation = this.validateInt({
-      input: pageNumer as string,
+      input: pageNumber as string,
       valueName: "numero de página",
       positiveNumber: true,
     });
 
     if (validation.msg) msg.push(validation.msg);
     const page = validation.number;
+    console.log(`Pagina en controaldor: ${page}`);
 
     const keys = Object.keys(criterio) as Array<keyof Partial<FuelUsed>>;
 
