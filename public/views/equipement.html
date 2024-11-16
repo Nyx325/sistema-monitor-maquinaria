@@ -76,12 +76,8 @@
       </form>
     </dialog>
     <main>
-<<<<<<< HEAD
       <div>
-
-=======
       <section>
->>>>>>> 5ccfc355c2b702f4938ba2c68aaea1b6d530d40b
         <button id="add-equipement" type="button" class="btn btn-success">
           Agregar
         </button>
@@ -91,46 +87,15 @@
         <button id="delete-equipement" type="button" class="btn btn-danger">
           Eliminar
         </button>
-<<<<<<< HEAD
         <button id="filter-equipement" type="button" class="btn btn-secondary" 
         data-bs-toggle="modal" data-bs-target="#filterModal">
           Buscar</button>
       </div>
 
-      <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="filterModalLabel">Buscar por: </h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <form id="filterForm">
-                <div class="mb-3">
-                  <label for="filter-serial" class="form-label">Número de serie</label>
-                  <input type="text" class="form-control" id="filter-serial" placeholder="" />
-                </div>
-                <div class="mb-3">
-                  <label for="filter-oem" class="form-label">OEM</label>
-                  <input type="text" class="form-control" id="filter-oem" placeholder="" />
-                </div>
-                <div class="mb-3">
-                  <label for="filter-model" class="form-label">Modelo</label>
-                  <input type="text" class="form-control" id="filter-model" placeholder="" />
-                </div>
-                <button type="button" class="btn btn-primary" onclick="applyFilters()">Buscar</button>
-                <button type="button" class="btn btn-secondary" onclick="clearFilters()">Limpiar</button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-      </div>
-=======
-      </section>
->>>>>>> 5ccfc355c2b702f4938ba2c68aaea1b6d530d40b
       <table id="equipement-records" class="table"></table>
       <nav id="pager" class="pager"></nav>
     </main>
+    <script src="/js/equipos.js"></script>
+
   </body>
 </html>

@@ -32,7 +32,8 @@ body {
 
 #add-equipement,
 #update-equipement,
-#delete-equipement {
+#delete-equipement,
+#filter-equipement {
   display: inline-block;
   margin-top: 100px;
 }
