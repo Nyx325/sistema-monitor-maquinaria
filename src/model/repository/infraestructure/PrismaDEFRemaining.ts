@@ -7,7 +7,7 @@ import { IConnector } from "../../../controller/use_cases/IConnector.js";
 import { Search } from "../../entities/Search.js";
 import Config from "../../../config.js";
 
-export class PrismaFuelRemainingRepository extends Repository<
+export class PrismaDEFRemainingRepository extends Repository<
   DefRemaining,
   NewDefRemaining,
   number

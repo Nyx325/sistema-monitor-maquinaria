@@ -1,18 +1,18 @@
 import { PrismaEquipementRepo } from "../../model/repository/infraestructure/PrismaEquipementRepository.js";
-import { PrismaFuelRemainingRepository } from "../../model/repository/infraestructure/PrismaFuelRemainingRepository.js";
 import PrismaSnapshotRepository from "../../model/repository/infraestructure/PrismaSnapshotRepository.js";
 import { IEquipementRepository } from "../../model/repository/use_cases/IEquipementRepository.js";
-import { IFuelRemainingRepository } from "../../model/repository/use_cases/IFuelRemainingRepository.js";
 import { ISnapshotRepository } from "../../model/repository/use_cases/ISnapshotRepository.js";
 import { Controller } from "../use_cases/Controller.js";
 import UserError from "../../model/entities/UserError.js";
-import { ApiSnapshot, Equipement, FuelRemaining } from "@prisma/client";
+import { ApiSnapshot, Equipement, DefRemaining } from "@prisma/client";
 import { Request } from "express";
-import { NewFuelRemaining } from "../../model/entities/NewFuelRemaining.js";
+import { IDefRemainingRepository } from "../../model/repository/use_cases/IDefRemainingRepository.js";
+import { PrismaDEFRemainingRepository } from "../../model/repository/infraestructure/PrismaDEFRemaining.js";
+import { NewDefRemaining } from "../../model/entities/NewDefRemaining.js";
 
-export class FuelRemainingController extends Controller {
-  private readonly repo: IFuelRemainingRepository =
-    new PrismaFuelRemainingRepository();
+export class DEFRemainingController extends Controller {
+  private readonly repo: IDefRemainingRepository =
+    new PrismaDEFRemainingRepository();
   private readonly snapshotRepo: ISnapshotRepository =
     new PrismaSnapshotRepository();
   private readonly equipementRepo: IEquipementRepository =
@@ -25,7 +25,7 @@ export class FuelRemainingController extends Controller {
       snapshot_id: "ID de la snapshot",
       active: "activo o inactivo",
       serial_number: "numero de serie",
-      fuel_remaining_id: "ID del registro",
+      def_remaining_id: "ID del registro",
       percent: "porcentaje restante",
     };
 
@@ -35,7 +35,7 @@ export class FuelRemainingController extends Controller {
   protected async performAdd(r: Request): Promise<void> {
     const { serial_number, percent, date_time } = r.body;
 
-    const record: Partial<NewFuelRemaining> = {
+    const record: Partial<NewDefRemaining> = {
       percent: percent !== undefined ? Number(percent) : undefined,
       date_time: date_time !== undefined ? new Date(date_time) : undefined,
       snapshot_id: null,
@@ -46,7 +46,7 @@ export class FuelRemainingController extends Controller {
     if (isNaN(Date.parse(date_time)))
       msg.push("Formato de fecha y hora inválidos");
 
-    const keys = Object.keys(record) as Array<keyof NewFuelRemaining>;
+    const keys = Object.keys(record) as Array<keyof NewDefRemaining>;
     for (const key of keys) {
       if (key === "date_time") continue;
 
@@ -57,10 +57,9 @@ export class FuelRemainingController extends Controller {
 
       if (
         typeof record[key] === "number" &&
-        isNaN(record[key]) &&
-        record[key] < 0
+        (isNaN(record[key]) || record[key] < 0 || record[key] > 100)
       ) {
-        msg.push(`${this.translateKey(key)} debe ser un numero positivo`);
+        msg.push(`${this.translateKey(key)} debe ser un numero entre 0 y 100`);
         continue;
       }
     }
@@ -87,18 +86,18 @@ export class FuelRemainingController extends Controller {
 
     if (msg.length > 0) throw new UserError(msg.join(", "));
 
-    await this.repo.add(record as NewFuelRemaining);
+    await this.repo.add(record as NewDefRemaining);
   }
 
   protected async performUpdate(r: Request): Promise<void> {
-    const { fuel_remaining_id, percent, date_time, active } = r.body;
+    const { def_remaining_id, percent, date_time, active } = r.body;
 
-    const record: Partial<FuelRemaining> = {
+    const record: Partial<DefRemaining> = {
       active: active !== "false",
       percent: percent !== undefined ? Number(percent) : undefined,
       date_time: date_time !== undefined ? new Date(date_time) : undefined,
-      fuel_remaining_id:
-        fuel_remaining_id !== undefined ? Number(fuel_remaining_id) : undefined,
+      def_remaining_id:
+        def_remaining_id !== undefined ? Number(def_remaining_id) : undefined,
       snapshot_id: null,
     };
 
@@ -107,7 +106,7 @@ export class FuelRemainingController extends Controller {
     if (isNaN(Date.parse(date_time)))
       msg.push("Formato de fecha y hora inválidos");
 
-    const keys = Object.keys(record) as Array<keyof NewFuelRemaining>;
+    const keys = Object.keys(record) as Array<keyof DefRemaining>;
     for (const key of keys) {
       if (key === "date_time") continue;
 
@@ -118,27 +117,26 @@ export class FuelRemainingController extends Controller {
 
       if (
         typeof record[key] === "number" &&
-        isNaN(record[key]) &&
-        record[key] < 0
+        (isNaN(record[key]) || record[key] < 0 || record[key] > 100)
       ) {
-        msg.push(`${this.translateKey(key)} debe ser un numero`);
+        msg.push(`${this.translateKey(key)} debe ser un numero entre 0 y 100`);
         continue;
       }
     }
 
-    const original = await this.repo.get(Number(record.fuel_remaining_id));
+    const original = await this.repo.get(Number(record.def_remaining_id));
     if (original === undefined) msg.push("el registro a modificar no existe");
     if (msg.length > 0) throw new UserError(msg.join(", "));
 
     record.snapshot_id = original?.snapshot_id as number;
-    await this.repo.update(record as FuelRemaining);
+    await this.repo.update(record as DefRemaining);
   }
 
   protected async performDetele(r: Request): Promise<void> {
-    const { fuelRemainingId } = r.params;
+    const { defRemainingId } = r.params;
 
     const validation = this.validateInt({
-      input: fuelRemainingId,
+      input: defRemainingId,
       valueName: "ID del registro",
       positiveNumber: false,
     });
@@ -153,11 +151,11 @@ export class FuelRemainingController extends Controller {
   }
 
   protected async performGet(r: Request): Promise<unknown | undefined> {
-    const { fuelRemainingId } = r.params;
+    const { defRemainingId } = r.params;
 
     const validation = this.validateInt({
-      input: fuelRemainingId,
-      valueName: "localización",
+      input: defRemainingId,
+      valueName: "ID del registro",
       positiveNumber: false,
     });
 
@@ -169,7 +167,7 @@ export class FuelRemainingController extends Controller {
   protected async performGetBy(r: Request): Promise<unknown> {
     const { percent, date_time, active, pageNumber = "1" } = r.query;
 
-    const criteria: Partial<FuelRemaining> = {
+    const criteria: Partial<DefRemaining> = {
       active: active !== "false",
       percent: percent !== undefined ? Number(percent) : undefined,
       date_time: percent !== undefined ? new Date(`${date_time}`) : undefined,
@@ -189,7 +187,7 @@ export class FuelRemainingController extends Controller {
     if (date_time !== undefined && isNaN(Date.parse(`${date_time}`)))
       msg.push("formato de fecha y hora inválidos");
 
-    const keys = Object.keys(criteria) as Array<keyof Partial<FuelRemaining>>;
+    const keys = Object.keys(criteria) as Array<keyof Partial<DefRemaining>>;
     for (const key of keys) {
       if (criteria[key] === undefined) continue;
 
