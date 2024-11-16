@@ -27,7 +27,7 @@ body {
 }
 
 .logo {
-  height: 50px;
+  height: 60px;
 }
 
 #add-equipement,
@@ -67,8 +67,7 @@ body {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-h1,
-h2 {
+h1,h2 {
   color: #333;
   text-align: center;
 }
@@ -127,7 +126,7 @@ th {
 
 .page-btn {
   font-family: sans-serif;
-  border-radius: 7px; /* Bordes suavemente redondeados */
+  border-radius: 7px; 
   background: #ddd;
   color: #2c303a;
   height: 35px;
@@ -152,3 +151,8 @@ th {
   gap: 5px; /* Espaciado entre botones */
   margin-top: 20px;
 }
+
+
+
+
+
