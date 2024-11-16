@@ -15,9 +15,9 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="/css/styleEq.css" />
-    <script type="module" src="/scripts/equipement.js"></script>
+    <script type="module" src="/scripts/fuelRemaining.js"></script>
 
-    <title>Equipos</title>
+    <title>Combustible restante</title>
   </head>
   <header class="header">
     <div class="logo-container">
@@ -27,23 +27,23 @@
     <button class="logout-button" onclick="logout()">Cerrar Sesión</button>
   </header>
   <body class="container">
-    <dialog id="equipement-modal" class="container">
-      <div id="equipement-alert" class="alert alert-danger d-none"></div>
+    <dialog id="modal" class="container">
+      <div id="alert" class="alert alert-danger d-none"></div>
       <form class="container">
-        <legend id="form-title">Agregar equipo</legend>
+        <legend id="form-title">Agregar registro</legend>
         <div id="serial-number">
           <label id="serial-number-label" for="serial-number-input"
-            >Numero de serie</label
+            >Número de serie</label
           >
           <input id="serial-number-input" type="text" name="" value="" />
         </div>
-        <div id="model">
-          <label id="model-label" for="model-input">Modelo</label>
-          <input id="model-input" type="text" name="" value="" />
+        <div id="percent">
+          <label id="percent-label" for="percent-input">Porcentaje</label>
+          <input id="percent-input" type="text" name="" value="" />
         </div>
-        <div id="oem">
-          <label id="oem-label" for="oem-input">Nombre del OEM</label>
-          <input id="oem-input" type="text" name="" value="" />
+        <div id="datetime">
+          <label id="datetime-label" for="datetime-input">Fecha y hora</label>
+          <input id="datetime-input" type="datetime-local" name="" value="" />
         </div>
         <section id="activity-section" class="d-none">
           <div class="form-check">
@@ -68,28 +68,26 @@
           </div>
         </section>
 
-        <button id="acept-btn" type="button" class="btn btn-success">
+        <button id="acept" type="button" class="btn btn-success">
           Aceptar
         </button>
-        <button id="cancel-btn" type="button" class="btn btn-danger">
+        <button id="cancel" type="button" class="btn btn-danger">
           Cancelar
         </button>
       </form>
     </dialog>
 
-    <main>
+    <main class="container">
       <section>
-        <button id="add-equipement" type="button" class="btn btn-success">
-          Agregar
-        </button>
-        <button id="update-equipement" type="button" class="btn btn-primary">
+        <button id="add" type="button" class="btn btn-success">Agregar</button>
+        <button id="update" type="button" class="btn btn-primary">
           Modificar
         </button>
-        <button id="delete-equipement" type="button" class="btn btn-danger">
+        <button id="delete" type="button" class="btn btn-danger">
           Eliminar
         </button>
       </section>
-      <table id="equipement-records" class="table"></table>
+      <table id="records" class="table"></table>
       <nav id="pager" class="pager"></nav>
     </main>
   </body>

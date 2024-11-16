@@ -8,8 +8,8 @@ const fuelRemainingRoutes = Router();
 
 fuelRemainingRoutes.post("/", ctrl.add.bind(ctrl));
 fuelRemainingRoutes.put("/", ctrl.update.bind(ctrl));
-fuelRemainingRoutes.delete("/:fuelUsedId", ctrl.delete.bind(ctrl));
-fuelRemainingRoutes.get("/:fuelUsedId", ctrl.get.bind(ctrl));
+fuelRemainingRoutes.delete("/:fuelRemainingId", ctrl.delete.bind(ctrl));
+fuelRemainingRoutes.get("/:fuelRemainingId", ctrl.get.bind(ctrl));
 fuelRemainingRoutes.get("/", ctrl.getBy.bind(ctrl));
 
 export default fuelRemainingRoutes;

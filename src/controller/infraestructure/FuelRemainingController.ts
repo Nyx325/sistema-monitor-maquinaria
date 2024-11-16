@@ -131,7 +131,7 @@ export class FuelRemainingController extends Controller {
 
     const validation = this.validateInt({
       input: fuelRemainingId,
-      valueName: "localización",
+      valueName: "ID del registro",
       positiveNumber: false,
     });
 
