@@ -27,3 +27,7 @@ export type CIHWithSnapshot = Prisma.CumulativeIdleHoursGetPayload<{
 export type FuelRemainingWithSnapshot = Prisma.FuelRemainingGetPayload<{
   include: { snapshot: true };
 }>;
+
+export type DefRemainingWithSnapshot = Prisma.DefRemainingGetPayload<{
+  include: { snapshot: true };
+}>;
