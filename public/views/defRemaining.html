@@ -3,22 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
       integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
       crossorigin="anonymous"
     />
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-      crossorigin="anonymous"
-    ></script>
-
     <link rel="stylesheet" href="/css/styleEq.css" />
-    <script type="module" src="/scripts/location.js"></script>
+    <script type="module" src="/scripts/defRemaining.js"></script>
 
-    <title>Localizacion</title>
+    <title>DEF restante</title>
   </head>
   <header class="header">
     <div class="logo-container">
@@ -27,44 +26,23 @@
     </div>
     <button class="logout-button" onclick="logout()">Cerrar Sesión</button>
   </header>
-  <br />
   <body class="container">
-    <dialog id="location-modal" class="container">
-      <div id="location-alert" class="alert alert-danger d-none"></div>
+    <dialog id="modal" class="container">
+      <div id="alert" class="alert alert-danger d-none"></div>
       <form class="container">
-        <legend id="form-title">Agregar localizacion</legend>
+        <legend id="form-title">Agregar registro</legend>
         <div id="serial-number">
           <label id="serial-number-label" for="serial-number-input"
             >Número de serie</label
           >
           <input id="serial-number-input" type="text" name="" value="" />
         </div>
-        <div id="longitude">
-          <label id="longitude-label" for="longitude-input">Longitud</label>
-          <input id="longitude-input" type="text" name="" value="" />
-        </div>
-        <div id="latitude">
-          <label id="latitude-label" for="latitude-input">Latitud</label>
-          <input id="latitude-input" type="text" name="" value="" />
-        </div>
-        <div id="altitude">
-          <label id="altitude-label" for="altitude-input">Altitud</label>
-          <input id="altitude-input" type="text" name="" value="" />
-        </div>
-        <div id="altitude-units">
-          <label id="altitude-units-label" for="altitude-units-input"
-            >Unidades altitud</label
-          >
-          <input id="altitude-units-input" type="text" name="" value="" />
-        </div>
-        <div id="china-id">
-          <label id="china-id-label" for="china-id-input"
-            >ID de coordenadas chinas</label
-          >
-          <input id="china-id-input" type="text" name="" value="" />
+        <div id="percent">
+          <label id="percent-label" for="percent-input">Porcentaje</label>
+          <input id="percent-input" type="text" name="" value="" />
         </div>
         <div id="datetime">
-          <label id="datetime-label" for="datetime-input">Fecha</label>
+          <label id="datetime-label" for="datetime-input">Fecha y hora</label>
           <input id="datetime-input" type="datetime-local" name="" value="" />
         </div>
         <section id="activity-section" class="d-none">
@@ -90,29 +68,26 @@
           </div>
         </section>
 
-        <button id="acept-btn" type="button" class="btn btn-success">
+        <button id="acept" type="button" class="btn btn-success">
           Aceptar
         </button>
-        <button id="cancel-btn" type="button" class="btn btn-danger">
+        <button id="cancel" type="button" class="btn btn-danger">
           Cancelar
         </button>
       </form>
     </dialog>
 
-    <main>
-      <div>
-        <button id="add-location" type="button" class="btn btn-success">
-          Agregar
-        </button>
-
-        <button id="update-location" type="button" class="btn btn-primary">
+    <main class="container">
+      <section>
+        <button id="add" type="button" class="btn btn-success">Agregar</button>
+        <button id="update" type="button" class="btn btn-primary">
           Modificar
         </button>
-        <button id="delete-location" type="button" class="btn btn-danger">
+        <button id="delete" type="button" class="btn btn-danger">
           Eliminar
         </button>
-      </div>
-      <table id="location-records" class="table"></table>
+      </section>
+      <table id="records" class="table"></table>
       <nav id="pager" class="pager"></nav>
     </main>
   </body>

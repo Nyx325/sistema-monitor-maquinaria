@@ -37,4 +37,8 @@ export default class LabeledInput {
     if (visible) this.container.classList.remove("d-none");
     else this.container.classList.add("d-none");
   }
+
+  public disabled(disabled: boolean) {
+    this.input.disabled = disabled;
+  }
 }

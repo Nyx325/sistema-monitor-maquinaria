@@ -30,7 +30,7 @@ export abstract class Controller implements IController {
   async update(req: Request, res: Response): Promise<void> {
     try {
       await this.performUpdate(req);
-      res.status(200).json({ message: "Registro creado correctamente" });
+      res.status(200).json({ message: "Registro actualizado correctamente" });
     } catch (e) {
       this.handleError(e, res);
     }

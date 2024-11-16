@@ -1,17 +1,18 @@
-import { Request } from "express";
-import { Controller } from "../use_cases/Controller.js";
-import { NewFuelUsed } from "../../model/entities/NewFuelUsed.js";
-import { ApiSnapshot, Equipement, FuelUsed } from "@prisma/client";
-import { IFuelRepository } from "../../model/repository/use_cases/IFuelRepository.js";
-import { PrismaFuelUsedRepository } from "../../model/repository/infraestructure/PrismaFuelUsedRepository.js";
-import { IEquipementRepository } from "../../model/repository/use_cases/IEquipementRepository.js";
 import { PrismaEquipementRepo } from "../../model/repository/infraestructure/PrismaEquipementRepository.js";
-import { ISnapshotRepository } from "../../model/repository/use_cases/ISnapshotRepository.js";
+import { PrismaFuelRemainingRepository } from "../../model/repository/infraestructure/PrismaFuelRemainingRepository.js";
 import PrismaSnapshotRepository from "../../model/repository/infraestructure/PrismaSnapshotRepository.js";
+import { IEquipementRepository } from "../../model/repository/use_cases/IEquipementRepository.js";
+import { IFuelRemainingRepository } from "../../model/repository/use_cases/IFuelRemainingRepository.js";
+import { ISnapshotRepository } from "../../model/repository/use_cases/ISnapshotRepository.js";
+import { Controller } from "../use_cases/Controller.js";
 import UserError from "../../model/entities/UserError.js";
+import { ApiSnapshot, Equipement, FuelRemaining } from "@prisma/client";
+import { Request } from "express";
+import { NewFuelRemaining } from "../../model/entities/NewFuelRemaining.js";
 
-export class FuelUsedController extends Controller {
-  private readonly repo: IFuelRepository = new PrismaFuelUsedRepository();
+export class FuelRemainingController extends Controller {
+  private readonly repo: IFuelRemainingRepository =
+    new PrismaFuelRemainingRepository();
   private readonly snapshotRepo: ISnapshotRepository =
     new PrismaSnapshotRepository();
   private readonly equipementRepo: IEquipementRepository =
@@ -23,23 +24,19 @@ export class FuelUsedController extends Controller {
     const campos: { [key: string]: string } = {
       snapshot_id: "ID de la snapshot",
       active: "activo o inactivo",
-      fuel_used_id: "ID del registro",
-      fuel_consumed: "combustible consumido",
-      date_time: "fecha y hora",
-      fuel_units: "unidades del combustible",
       serial_number: "numero de serie",
+      fuel_remaining_id: "ID del registro",
+      percent: "porcentaje restante",
     };
 
     return campos[key] ?? defaultVal;
   }
 
   protected async performAdd(r: Request): Promise<void> {
-    const { fuel_consumed, fuel_units, date_time, serial_number } = r.body;
+    const { serial_number, percent, date_time } = r.body;
 
-    const fuel: Partial<NewFuelUsed> = {
-      fuel_consumed:
-        fuel_consumed !== undefined ? Number(fuel_consumed) : undefined,
-      fuel_units: fuel_units !== undefined ? String(fuel_units) : undefined,
+    const record: Partial<NewFuelRemaining> = {
+      percent: percent !== undefined ? Number(percent) : undefined,
       date_time: date_time !== undefined ? new Date(date_time) : undefined,
       snapshot_id: null,
     };
@@ -49,17 +46,21 @@ export class FuelUsedController extends Controller {
     if (isNaN(Date.parse(date_time)))
       msg.push("Formato de fecha y hora inválidos");
 
-    const keys = Object.keys(fuel) as Array<keyof NewFuelUsed>;
+    const keys = Object.keys(record) as Array<keyof NewFuelRemaining>;
     for (const key of keys) {
       if (key === "date_time") continue;
 
-      if (key !== "snapshot_id" && fuel[key] === undefined) {
+      if (key !== "snapshot_id" && record[key] === undefined) {
         msg.push(`${this.translateKey(key)} no fue definido`);
         continue;
       }
 
-      if (typeof fuel[key] === "number" && isNaN(fuel[key])) {
-        msg.push(`${this.translateKey(key)} debe ser un numero`);
+      if (
+        typeof record[key] === "number" &&
+        isNaN(record[key]) &&
+        record[key] < 0
+      ) {
+        msg.push(`${this.translateKey(key)} debe ser un numero positivo`);
         continue;
       }
     }
@@ -80,72 +81,65 @@ export class FuelUsedController extends Controller {
           snapshot_datetime: new Date(),
         });
 
-        fuel.snapshot_id = snapshot.snapshot_id;
+        record.snapshot_id = snapshot.snapshot_id;
       }
     }
 
     if (msg.length > 0) throw new UserError(msg.join(", "));
 
-    await this.repo.add(fuel as NewFuelUsed);
+    await this.repo.add(record as NewFuelRemaining);
   }
 
   protected async performUpdate(r: Request): Promise<void> {
-    const {
-      snapshot_id,
-      active,
-      fuel_used_id,
-      fuel_consumed,
-      date_time,
-      fuel_units,
-    } = r.body;
+    const { fuel_remaining_id, percent, date_time, active } = r.body;
+
+    const record: Partial<FuelRemaining> = {
+      active: active !== "false",
+      percent: percent !== undefined ? Number(percent) : undefined,
+      date_time: date_time !== undefined ? new Date(date_time) : undefined,
+      fuel_remaining_id:
+        fuel_remaining_id !== undefined ? Number(fuel_remaining_id) : undefined,
+      snapshot_id: null,
+    };
 
     const msg = [];
 
-    const fuel: Partial<FuelUsed> = {
-      fuel_units: fuel_units !== undefined ? String(fuel_units) : undefined,
-      date_time: new Date(date_time),
-      fuel_consumed:
-        fuel_consumed !== undefined ? Number(fuel_consumed) : undefined,
-      fuel_used_id:
-        fuel_used_id !== undefined ? Number(fuel_used_id) : undefined,
-      active: active !== "false",
-      snapshot_id: snapshot_id !== null ? Number(snapshot_id) : null,
-    };
-
     if (isNaN(Date.parse(date_time)))
-      msg.push("formato de fecha y hora inválidos");
+      msg.push("Formato de fecha y hora inválidos");
 
-    const keys = Object.keys(fuel) as Array<keyof FuelUsed>;
+    const keys = Object.keys(record) as Array<keyof NewFuelRemaining>;
     for (const key of keys) {
       if (key === "date_time") continue;
 
-      if (key !== "snapshot_id" && fuel[key] === undefined) {
+      if (key !== "snapshot_id" && record[key] === undefined) {
         msg.push(`${this.translateKey(key)} no fue definido`);
         continue;
       }
 
-      if (typeof fuel[key] === "number" && isNaN(fuel[key])) {
+      if (
+        typeof record[key] === "number" &&
+        isNaN(record[key]) &&
+        record[key] < 0
+      ) {
         msg.push(`${this.translateKey(key)} debe ser un numero`);
         continue;
       }
     }
 
-    const original = await this.repo.get(fuel.fuel_used_id as number);
+    const original = await this.repo.get(Number(record.fuel_remaining_id));
     if (original === undefined) msg.push("el registro a modificar no existe");
     if (msg.length > 0) throw new UserError(msg.join(", "));
 
-    fuel.snapshot_id = original?.snapshot_id as number;
-    await this.repo.update(fuel as FuelUsed);
+    record.snapshot_id = original?.snapshot_id as number;
+    await this.repo.update(record as FuelRemaining);
   }
 
   protected async performDetele(r: Request): Promise<void> {
-    const { fuelUsedId } = r.params;
-
-    if (!fuelUsedId) throw new UserError("No se proporcionó un ID");
+    const { fuelRemainingId } = r.params;
 
     const validation = this.validateInt({
-      input: fuelUsedId,
-      valueName: "ID de registro",
+      input: fuelRemainingId,
+      valueName: "ID del registro",
       positiveNumber: false,
     });
 
@@ -153,19 +147,16 @@ export class FuelUsedController extends Controller {
 
     const record = await this.repo.get(validation.number as number);
 
-    if (record === undefined) throw new UserError("Registro no encontrado");
+    if (record === undefined) throw new UserError("No se encontró el registro");
 
-    // Elimina el equipo utilizando el número de serie
     await this.repo.delete(record);
   }
 
   protected async performGet(r: Request): Promise<unknown | undefined> {
-    const { fuelUsedId } = r.params; // Obtenemos el número de serie desde los parámetros de la URL
-
-    if (!fuelUsedId) throw new UserError("El ID no fue proporcionado");
+    const { fuelRemainingId } = r.params;
 
     const validation = this.validateInt({
-      input: fuelUsedId,
+      input: fuelRemainingId,
       valueName: "localización",
       positiveNumber: false,
     });
@@ -176,22 +167,12 @@ export class FuelUsedController extends Controller {
   }
 
   protected async performGetBy(r: Request): Promise<unknown> {
-    const {
-      active,
-      fuel_consumed,
-      date_time,
-      fuel_units,
-      pageNumber = "1",
-    } = r.query;
+    const { percent, date_time, active, pageNumber = "1" } = r.query;
 
-    const criterio: Partial<FuelUsed> = {
+    const criteria: Partial<FuelRemaining> = {
       active: active !== "false",
-      fuel_consumed:
-        fuel_consumed !== undefined ? Number(fuel_consumed) : undefined,
-      fuel_units: fuel_units !== undefined ? String(fuel_units) : undefined,
-      date_time:
-        date_time !== undefined ? new Date(String(date_time)) : undefined,
-      snapshot_id: undefined,
+      percent: percent !== undefined ? Number(percent) : undefined,
+      date_time: percent !== undefined ? new Date(`${date_time}`) : undefined,
     };
 
     const msg = [];
@@ -205,23 +186,26 @@ export class FuelUsedController extends Controller {
     if (validation.msg) msg.push(validation.msg);
     const page = validation.number;
 
-    const keys = Object.keys(criterio) as Array<keyof Partial<FuelUsed>>;
-    for (const key of keys) {
-      if (criterio[key] === undefined) continue;
+    if (date_time !== undefined && isNaN(Date.parse(`${date_time}`)))
+      msg.push("formato de fecha y hora inválidos");
 
-      if (typeof criterio[key] === "number") {
+    const keys = Object.keys(criteria) as Array<keyof Partial<FuelRemaining>>;
+    for (const key of keys) {
+      if (criteria[key] === undefined) continue;
+
+      if (typeof criteria[key] === "number") {
         const validation = this.validateFloat({
           valueName: this.translateKey(key),
-          input: String(criterio[key]),
+          input: String(criteria[key]),
         });
 
         if (validation.msg !== undefined) msg.push(validation.msg);
       }
 
-      if (typeof criterio[key] === "number") {
+      if (typeof criteria[key] === "number") {
         const validation = this.validateFloat({
           valueName: key,
-          input: String(criterio[key]),
+          input: String(criteria[key]),
         });
 
         if (validation.msg !== undefined) msg.push(validation.msg);
@@ -229,7 +213,7 @@ export class FuelUsedController extends Controller {
       }
 
       if (key === "date_time") {
-        const validation = this.validateDate(String(criterio[key]));
+        const validation = this.validateDate(String(criteria[key]));
         if (validation.msg !== undefined) msg.push(validation.msg);
         continue;
       }
@@ -237,6 +221,6 @@ export class FuelUsedController extends Controller {
 
     if (msg.length > 0) throw new UserError(msg.join(", "));
 
-    return await this.repo.getBy(criterio, page as number);
+    return await this.repo.getBy(criteria, page as number);
   }
 }

@@ -16,31 +16,32 @@
     />
     <link rel="stylesheet" href="/css/styleEq.css" />
     <script type="module" src="/scripts/equipement.js"></script>
-
-    <title>Equipos</title> 
+    <title>Equipos</title>
   </head>
   <header class="header">
     <div class="logo-container">
-        <img src="/assets/img/LogoMarsal.png" class="logo">
-        <h2>Sistema de monitoreo para activos MARSAL</h2>
+      <img src="/assets/img/LogoMarsal.png" class="logo" />
+      <h2>Sistema de monitoreo para activos MARSAL</h2>
     </div>
     <button class="logout-button" onclick="logout()">Cerrar Sesión</button>
-</header>
+  </header>
   <body class="container">
     <dialog id="equipement-modal" class="container">
       <div id="equipement-alert" class="alert alert-danger d-none"></div>
       <form class="container">
         <legend id="form-title">Agregar equipo</legend>
-        <div>
-          <label for="serial-number-input">Numero de serie</label>
+        <div id="serial-number">
+          <label id="serial-number-label" for="serial-number-input"
+            >Numero de serie</label
+          >
           <input id="serial-number-input" type="text" name="" value="" />
         </div>
-        <div>
-          <label for="model-input">Modelo</label>
+        <div id="model">
+          <label id="model-label" for="model-input">Modelo</label>
           <input id="model-input" type="text" name="" value="" />
         </div>
-        <div>
-          <label for="oem-input">Nombre del OEM</label>
+        <div id="oem">
+          <label id="oem-label" for="oem-input">Nombre del OEM</label>
           <input id="oem-input" type="text" name="" value="" />
         </div>
         <section id="activity-section" class="d-none">
@@ -67,25 +68,30 @@
         </section>
 
         <button id="acept-btn" type="button" class="btn btn-success">
-          Aceptar 
+          Aceptar
         </button>
         <button id="cancel-btn" type="button" class="btn btn-danger">
-          Cancelar 
+          Cancelar
         </button>
       </form>
     </dialog>
     <main>
+<<<<<<< HEAD
       <div>
 
+=======
+      <section>
+>>>>>>> 5ccfc355c2b702f4938ba2c68aaea1b6d530d40b
         <button id="add-equipement" type="button" class="btn btn-success">
-          Agregar equipo
+          Agregar
         </button>
         <button id="update-equipement" type="button" class="btn btn-primary">
-          Modificar equipo
+          Modificar
         </button>
         <button id="delete-equipement" type="button" class="btn btn-danger">
-          Eliminar equipo
+          Eliminar
         </button>
+<<<<<<< HEAD
         <button id="filter-equipement" type="button" class="btn btn-secondary" 
         data-bs-toggle="modal" data-bs-target="#filterModal">
           Buscar</button>
@@ -120,10 +126,11 @@
         </div>
       </div>
       </div>
+=======
+      </section>
+>>>>>>> 5ccfc355c2b702f4938ba2c68aaea1b6d530d40b
       <table id="equipement-records" class="table"></table>
-      
+      <nav id="pager" class="pager"></nav>
     </main>
-    <script src="/js/equipos.js"></script>
-
   </body>
 </html>

@@ -1,10 +1,10 @@
-import { COHWithSnapshot } from "../../model/entities/ModelsWithSnapshot.js";
+import { FuelRemainingWithSnapshot } from "../../model/entities/ModelsWithSnapshot.js";
 import { View } from "./view.js";
 
-class COHView extends View<COHWithSnapshot> {
+class FuelRemainingView extends View<FuelRemainingWithSnapshot> {
   constructor() {
     super({
-      adapterEndpoint: "coh",
+      adapterEndpoint: "combustibleRestante",
       alert: "alert",
       modalId: "modal",
       tableId: "records",
@@ -30,19 +30,19 @@ class COHView extends View<COHWithSnapshot> {
           },
         },
         {
-          key: "hours",
+          key: "percent",
           inputOpts: {
-            containerId: "hours",
-            inputId: "hours-input",
-            labelId: "hours-label",
+            containerId: "percent",
+            labelId: "percent-label",
+            inputId: "percent-input",
           },
         },
         {
           key: "datetime",
           inputOpts: {
             containerId: "datetime",
-            inputId: "datetime-input",
             labelId: "datetime-label",
+            inputId: "datetime-input",
           },
         },
       ],
@@ -56,15 +56,15 @@ class COHView extends View<COHWithSnapshot> {
 
   protected async initTable(): Promise<void> {
     await super.initTable({
-      title: "Horas operativas acumuladas",
-      headers: ["Número de serie", "Fecha y hora", "Horas"],
+      title: "Combustible restante",
+      headers: ["Numero de serie", "Fecha y hora", "Combustible restante (%)"],
     });
 
     this.table.onParseData((record) => {
       return [
         `${record.snapshot?.serial_number}`,
         `${record.date_time}`,
-        `${record.hour}`,
+        `${record.percent}`,
       ];
     });
 
@@ -83,38 +83,40 @@ class COHView extends View<COHWithSnapshot> {
     this.form.aceptBtn.addEventListener("click", async () => {
       const i = this.form.inputs;
       const serial_number = i.serialNumber.getValue();
-      const hour = i.hours.getValue();
       const date_time = i.datetime.getValue();
       const active = this.form.activity.getSelection();
+      const percent = i.percent.getValue();
 
-      let res;
+      let fuel;
+      let response;
       if (this.form.adding) {
-        const record = {
-          serial_number,
-          hour,
+        fuel = {
           date_time,
+          serial_number,
+          percent,
         };
-
-        res = await this.adapter.add(record);
+        response = await this.adapter.add(fuel);
       } else {
         if (this.table.lastSelected === undefined) {
           console.error("No se seleccionó un elemento");
           return;
         }
 
-        const s = this.table.lastSelected.record;
-        const record = {
-          coh_id: s.coh_id,
-          hour,
+        const selected = this.table.lastSelected.record;
+
+        fuel = {
+          fuel_remaining_id: selected.fuel_remaining_id,
           date_time,
+          percent,
           active,
-          snapshot_id: s.snapshot_id,
+          snapshot_id: selected.snapshot_id,
         };
-        res = await this.adapter.update(record);
+
+        response = await this.adapter.update(fuel);
       }
 
-      if (res.status >= 400) {
-        const e = JSON.parse(await res.text());
+      if (response.status >= 400) {
+        const e = JSON.parse(await response.text());
         this.form.alert.setMessage(e.message);
         this.form.alert.setVisible(true);
         return;
@@ -128,19 +130,19 @@ class COHView extends View<COHWithSnapshot> {
 
   protected addBtnAction(): void {}
 
-  protected updateBtnAction(record: COHWithSnapshot): void {
+  protected updateBtnAction(record: FuelRemainingWithSnapshot) {
     const i = this.form.inputs;
     i.serialNumber.setValue(record.snapshot?.serial_number);
-    i.hours.setValue(record.hour);
+    i.percent.setValue(record.percent);
     i.datetime.setValue(record.date_time);
     this.form.activity.setSelection(record.active);
   }
 
-  protected getRecordId(record: COHWithSnapshot): unknown {
-    return record.coh_id;
+  protected getRecordId(record: FuelRemainingWithSnapshot) {
+    return record.fuel_remaining_id;
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  new COHView();
+  new FuelRemainingView();
 });

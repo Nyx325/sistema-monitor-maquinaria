@@ -143,15 +143,21 @@ export abstract class View<T extends Record<string, unknown>> {
 
   protected initCrudBtns(): void {
     this.crudBtns.add.addEventListener("click", () => {
+      this.clearFormFields();
+      this.form.legend.innerText = "Agregar registro";
+      this.form.activity.setVisible(false);
       this.addBtnAction();
       this.form.adding = true;
       this.modal.show(true);
     });
 
     this.crudBtns.update.addEventListener("click", () => {
+      this.clearFormFields();
       this.form.adding = false;
       const lastSelected = this.table.lastSelected;
       if (!lastSelected) return;
+      this.form.legend.innerText = "Actualizar registro";
+      this.form.activity.setVisible(true);
       this.updateBtnAction(lastSelected.record);
       this.modal.show(true);
     });
@@ -169,6 +175,12 @@ export abstract class View<T extends Record<string, unknown>> {
       }
 
       this.refreshTable();
+    });
+  }
+
+  protected clearFormFields(): void {
+    Object.values(this.form.inputs).forEach((input) => {
+      input.clear();
     });
   }
 
