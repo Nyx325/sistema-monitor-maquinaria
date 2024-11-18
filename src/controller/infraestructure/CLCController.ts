@@ -4,15 +4,14 @@ import { IEquipementRepository } from "../../model/repository/use_cases/IEquipem
 import { ISnapshotRepository } from "../../model/repository/use_cases/ISnapshotRepository.js";
 import { Controller } from "../use_cases/Controller.js";
 import UserError from "../../model/entities/UserError.js";
-import { ApiSnapshot, Equipement, DefRemaining } from "@prisma/client";
+import { ApiSnapshot, Equipement, CumulativeLoadCount } from "@prisma/client";
 import { Request } from "express";
-import { IDefRemainingRepository } from "../../model/repository/use_cases/IDefRemainingRepository.js";
-import { PrismaDEFRemainingRepository } from "../../model/repository/infraestructure/PrismaDEFRemaining.js";
-import { NewDefRemaining } from "../../model/entities/NewDefRemaining.js";
+import { NewCLC } from "../../model/entities/NewCumulativeLoadCount.js";
+import { ICLCRepository } from "../../model/repository/use_cases/ICLCRepository.js";
+import { PrismaCLCRepository } from "../../model/repository/infraestructure/PrismaCLCRepository.js";
 
-export class DEFRemainingController extends Controller {
-  private readonly repo: IDefRemainingRepository =
-    new PrismaDEFRemainingRepository();
+export class CLCController extends Controller {
+  private readonly repo: ICLCRepository = new PrismaCLCRepository();
   private readonly snapshotRepo: ISnapshotRepository =
     new PrismaSnapshotRepository();
   private readonly equipementRepo: IEquipementRepository =
@@ -25,18 +24,19 @@ export class DEFRemainingController extends Controller {
       snapshot_id: "ID de la snapshot",
       active: "activo o inactivo",
       serial_number: "numero de serie",
-      def_remaining_id: "ID del registro",
-      percent: "porcentaje restante",
+      clo_id: "ID de registro",
+      count: "cuenta",
+      date_time: "fecha y hora",
     };
 
     return campos[key] ?? defaultVal;
   }
 
   protected async performAdd(r: Request): Promise<void> {
-    const { serial_number, percent, date_time } = r.body;
+    const { serial_number, count, date_time } = r.body;
 
-    const record: Partial<NewDefRemaining> = {
-      percent: percent !== undefined ? Number(percent) : undefined,
+    const record: Partial<NewCLC> = {
+      count: count !== undefined ? Number(count) : undefined,
       date_time: date_time !== undefined ? new Date(date_time) : undefined,
       snapshot_id: null,
     };
@@ -46,7 +46,7 @@ export class DEFRemainingController extends Controller {
     if (isNaN(Date.parse(date_time)))
       msg.push("Formato de fecha y hora inválidos");
 
-    const keys = Object.keys(record) as Array<keyof NewDefRemaining>;
+    const keys = Object.keys(record) as Array<keyof NewCLC>;
     for (const key of keys) {
       if (key === "date_time") continue;
 
@@ -55,10 +55,7 @@ export class DEFRemainingController extends Controller {
         continue;
       }
 
-      if (
-        typeof record[key] === "number" &&
-        (isNaN(record[key]) || record[key] < 0 || record[key] > 100)
-      ) {
+      if (typeof record[key] === "number" && isNaN(record[key])) {
         msg.push(`${this.translateKey(key)} debe ser un numero entre 0 y 100`);
         continue;
       }
@@ -86,18 +83,17 @@ export class DEFRemainingController extends Controller {
 
     if (msg.length > 0) throw new UserError(msg.join(", "));
 
-    await this.repo.add(record as NewDefRemaining);
+    await this.repo.add(record as CumulativeLoadCount);
   }
 
   protected async performUpdate(r: Request): Promise<void> {
-    const { def_remaining_id, percent, date_time, active } = r.body;
+    const { clo_id, count, date_time, active } = r.body;
 
-    const record: Partial<DefRemaining> = {
+    const record: Partial<CumulativeLoadCount> = {
+      clo_id: clo_id !== undefined ? Number(clo_id) : undefined,
       active: active !== "false",
-      percent: percent !== undefined ? Number(percent) : undefined,
+      count: count !== undefined ? Number(count) : undefined,
       date_time: date_time !== undefined ? new Date(date_time) : undefined,
-      def_remaining_id:
-        def_remaining_id !== undefined ? Number(def_remaining_id) : undefined,
       snapshot_id: null,
     };
 
@@ -106,7 +102,7 @@ export class DEFRemainingController extends Controller {
     if (isNaN(Date.parse(date_time)))
       msg.push("Formato de fecha y hora inválidos");
 
-    const keys = Object.keys(record) as Array<keyof DefRemaining>;
+    const keys = Object.keys(record) as Array<keyof CumulativeLoadCount>;
     for (const key of keys) {
       if (key === "date_time") continue;
 
@@ -115,28 +111,25 @@ export class DEFRemainingController extends Controller {
         continue;
       }
 
-      if (
-        typeof record[key] === "number" &&
-        (isNaN(record[key]) || record[key] < 0 || record[key] > 100)
-      ) {
+      if (typeof record[key] === "number" && isNaN(record[key])) {
         msg.push(`${this.translateKey(key)} debe ser un numero entre 0 y 100`);
         continue;
       }
     }
 
-    const original = await this.repo.get(Number(record.def_remaining_id));
+    const original = await this.repo.get(Number(record.clo_id));
     if (original === undefined) msg.push("el registro a modificar no existe");
     if (msg.length > 0) throw new UserError(msg.join(", "));
 
     record.snapshot_id = original?.snapshot_id as number;
-    await this.repo.update(record as DefRemaining);
+    await this.repo.update(record as CumulativeLoadCount);
   }
 
   protected async performDetele(r: Request): Promise<void> {
-    const { defRemainingId } = r.params;
+    const { id } = r.params;
 
     const validation = this.validateInt({
-      input: defRemainingId,
+      input: id,
       valueName: "ID del registro",
       positiveNumber: false,
     });
@@ -151,10 +144,10 @@ export class DEFRemainingController extends Controller {
   }
 
   protected async performGet(r: Request): Promise<unknown | undefined> {
-    const { defRemainingId } = r.params;
+    const { id } = r.params;
 
     const validation = this.validateInt({
-      input: defRemainingId,
+      input: id,
       valueName: "ID del registro",
       positiveNumber: false,
     });
@@ -165,11 +158,11 @@ export class DEFRemainingController extends Controller {
   }
 
   protected async performGetBy(r: Request): Promise<unknown> {
-    const { percent, date_time, active, pageNumber = "1" } = r.query;
+    const { count, date_time, active, pageNumber = "1" } = r.query;
 
-    const criteria: Partial<DefRemaining> = {
+    const criteria: Partial<CumulativeLoadCount> = {
       active: active !== "false",
-      percent: percent !== undefined ? Number(percent) : undefined,
+      count: count !== undefined ? Number(count) : undefined,
       date_time: date_time !== undefined ? new Date(`${date_time}`) : undefined,
     };
 
@@ -187,7 +180,9 @@ export class DEFRemainingController extends Controller {
     if (date_time !== undefined && isNaN(Date.parse(`${date_time}`)))
       msg.push("formato de fecha y hora inválidos");
 
-    const keys = Object.keys(criteria) as Array<keyof Partial<DefRemaining>>;
+    const keys = Object.keys(criteria) as Array<
+      keyof Partial<CumulativeLoadCount>
+    >;
     for (const key of keys) {
       if (criteria[key] === undefined) continue;
 

@@ -31,3 +31,7 @@ export type FuelRemainingWithSnapshot = Prisma.FuelRemainingGetPayload<{
 export type DefRemainingWithSnapshot = Prisma.DefRemainingGetPayload<{
   include: { snapshot: true };
 }>;
+
+export type CLCWithSnapshot = Prisma.CumulativeLoadCountGetPayload<{
+  include: { snapshot: true };
+}>;
