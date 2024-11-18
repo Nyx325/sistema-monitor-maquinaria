@@ -1,14 +1,15 @@
-import { CumulativeIdleHours, PrismaClient } from "@prisma/client";
+import { EngineStatus } from "@prisma/client";
 import { Repository } from "../use_cases/Repository.js";
-import { NewCIH } from "../../entities/NewCumulativeIdleHours.js";
+import { NewEngineStatus } from "../../entities/NewEngineStatus.js";
 import { IConnector } from "../../../controller/use_cases/IConnector.js";
+import { PrismaClient } from "@prisma/client";
 import { PrismaConnector } from "../../../controller/infraestructure/PrismaConnector.js";
-import { Search } from "../../entities/Search.js";
 import Config from "../../../config.js";
+import { Search } from "../../entities/Search.js";
 
-export class PrismaCIHRepository extends Repository<
-  CumulativeIdleHours,
-  NewCIH,
+export class PrismaEngineRepo extends Repository<
+  EngineStatus,
+  NewEngineStatus,
   number
 > {
   private readonly connector: IConnector<PrismaClient>;
@@ -33,40 +34,39 @@ export class PrismaCIHRepository extends Repository<
     }
   }
 
-  async add(model: NewCIH): Promise<CumulativeIdleHours> {
-    // a función de callback (deja implícito el retorno):
+  async add(model: NewEngineStatus): Promise<EngineStatus> {
     return this.executeWithConnection((conn) =>
-      conn.cumulativeIdleHours.create({ data: model }),
+      conn.engineStatus.create({ data: model }),
     );
   }
 
-  async update(model: CumulativeIdleHours): Promise<void> {
+  async update(model: EngineStatus): Promise<void> {
     await this.executeWithConnection((conn) =>
-      conn.cumulativeIdleHours.update({
-        where: { cih_id: model.cih_id },
+      conn.engineStatus.update({
+        where: { engine_status_id: model.engine_status_id },
         data: model,
       }),
     );
   }
 
-  async delete(model: CumulativeIdleHours): Promise<void> {
+  async delete(model: EngineStatus): Promise<void> {
     model.active = false;
-    await this.update(model);
+    return this.update(model);
   }
 
-  async get(id: number): Promise<CumulativeIdleHours | undefined> {
+  async get(id: number): Promise<EngineStatus | undefined> {
     return this.executeWithConnection(async (conn) => {
-      const result = await conn.cumulativeIdleHours.findFirst({
-        where: { cih_id: id },
+      const result = await conn.engineStatus.findFirst({
+        where: { engine_status_id: id },
       });
       return result ?? undefined;
     });
   }
 
   async getBy(
-    criteria: Partial<CumulativeIdleHours>,
+    criteria: Partial<EngineStatus>,
     pageNumber: number,
-  ): Promise<Search<CumulativeIdleHours>> {
+  ): Promise<Search<EngineStatus>> {
     return this.executeWithConnection(async (conn) => {
       const dateFilter =
         criteria.date_time !== undefined
@@ -76,13 +76,17 @@ export class PrismaCIHRepository extends Repository<
       const where = {
         date_time: dateFilter,
         active: criteria.active,
-        hour: criteria.hour,
-        snapshot_id: criteria.snapshot_id,
+        running: criteria.running,
+        engine_number: criteria.engine_number
+          ? { contains: criteria.engine_number }
+          : undefined,
       };
 
       const [totalResults, results] = await Promise.all([
-        conn.cumulativeIdleHours.count({ where }),
-        conn.cumulativeIdleHours.findMany({
+        conn.engineStatus.count({
+          where,
+        }),
+        conn.engineStatus.findMany({
           where,
           include: { snapshot: true },
           orderBy: { date_time: "desc" },
@@ -103,9 +107,9 @@ export class PrismaCIHRepository extends Repository<
   }
 
   async specificSearch(
-    criteria: Partial<CumulativeIdleHours>,
+    criteria: Partial<EngineStatus>,
     pageNumber: number,
-  ): Promise<Search<CumulativeIdleHours>> {
+  ): Promise<Search<EngineStatus>> {
     return await this.getBy(criteria, pageNumber);
   }
 }

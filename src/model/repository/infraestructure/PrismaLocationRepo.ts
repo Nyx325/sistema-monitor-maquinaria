@@ -1,4 +1,4 @@
-import { Location, Prisma, PrismaClient } from "@prisma/client";
+import { Location, PrismaClient } from "@prisma/client";
 import { IConnector } from "../../../controller/use_cases/IConnector.js";
 import { PrismaConnector } from "../../../controller/infraestructure/PrismaConnector.js";
 import { Search } from "../../entities/Search.js";
