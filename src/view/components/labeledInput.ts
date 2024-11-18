@@ -41,4 +41,12 @@ export default class LabeledInput {
   public disabled(disabled: boolean) {
     this.input.disabled = disabled;
   }
+
+  public isChecked(): boolean {
+    return this.input.checked;
+  }
+
+  public setChecked(checked: boolean) {
+    this.input.checked = checked;
+  }
 }

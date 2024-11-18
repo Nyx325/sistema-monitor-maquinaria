@@ -74,4 +74,8 @@ router.get("/DEFRestante", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/views/defRemaining.html"));
 });
 
+router.get("/estadoMotor", (_req, res)=>{
+  res.sendFile(path.join(__dirname, "../public/views/engineStatus.html"));
+})
+
 export default router;
