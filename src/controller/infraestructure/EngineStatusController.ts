@@ -94,7 +94,7 @@ export class EngineStatusController extends Controller {
     const record: Partial<EngineStatus> = {
       active: active !== "false",
       date_time: new Date(date_time),
-      running: running !== "false",
+      running,
       engine_number:
         engine_number !== undefined ? `${engine_number}` : undefined,
       engine_status_id:
