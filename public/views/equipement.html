@@ -75,8 +75,8 @@
         </button>
       </form>
     </dialog>
-
     <main>
+      <div>
       <section>
         <button id="add-equipement" type="button" class="btn btn-success">
           Agregar
@@ -87,9 +87,15 @@
         <button id="delete-equipement" type="button" class="btn btn-danger">
           Eliminar
         </button>
-      </section>
+        <button id="filter-equipement" type="button" class="btn btn-secondary" 
+        data-bs-toggle="modal" data-bs-target="#filterModal">
+          Buscar</button>
+      </div>
+
       <table id="equipement-records" class="table"></table>
       <nav id="pager" class="pager"></nav>
     </main>
+    <script src="/js/equipos.js"></script>
+
   </body>
 </html>

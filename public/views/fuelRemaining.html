@@ -25,7 +25,7 @@
       <h2>Sistema de monitoreo para activos MARSAL</h2>
     </div>
     <button class="logout-button" onclick="logout()">Cerrar Sesión</button>
-  </header>
+  </header><br>
   <body class="container">
     <dialog id="modal" class="container">
       <div id="alert" class="alert alert-danger d-none"></div>
@@ -86,9 +86,14 @@
         <button id="delete" type="button" class="btn btn-danger">
           Eliminar
         </button>
+        <button id="filter" type="button" class="btn btn-secondary">
+          Buscar
+        </button>
       </section>
       <table id="records" class="table"></table>
       <nav id="pager" class="pager"></nav>
     </main>
+    <script src="/js/equipos.js"></script>
+
   </body>
 </html>
