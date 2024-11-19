@@ -105,6 +105,7 @@ export class FaultCodeController extends Controller {
 
   protected async performUpdate(r: Request): Promise<void> {
     const {
+      folio,
       date_time,
       code_identifier,
       code_description,
@@ -116,6 +117,7 @@ export class FaultCodeController extends Controller {
     } = r.body;
 
     const record: Partial<FaultCode> = {
+      folio: folio !== undefined ? Number(folio) : undefined,
       active: active !== "false",
       date_time: new Date(date_time),
       snapshot_id: null,
