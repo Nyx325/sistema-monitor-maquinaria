@@ -43,3 +43,7 @@ export type EngineStatusWithSnapshot = Prisma.EngineStatusGetPayload<{
 export type CPTWithSnapshot = Prisma.CumulativePayloadTotalsGetPayload<{
   include: { snapshot: true };
 }>;
+
+export type FaultCodeWithSnapshot = Prisma.FaultCodeGetPayload<{
+  include: { snapshot: true };
+}>;
