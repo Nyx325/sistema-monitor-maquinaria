@@ -1,17 +1,21 @@
 import { Request } from "express";
-import { PrismaDistanceRepository } from "../../model/repository/infraestructure/PrismaDistanceRepository.js";
 import { PrismaEquipementRepo } from "../../model/repository/infraestructure/PrismaEquipementRepository.js";
 import PrismaSnapshotRepository from "../../model/repository/infraestructure/PrismaSnapshotRepository.js";
-import { IDistanceRepository } from "../../model/repository/use_cases/IDistanceRepository.js";
 import { IEquipementRepository } from "../../model/repository/use_cases/IEquipementRepository.js";
 import { ISnapshotRepository } from "../../model/repository/use_cases/ISnapshotRepository.js";
 import { Controller } from "../use_cases/Controller.js";
-import { ApiSnapshot, Distance, Equipement } from "@prisma/client";
-import { NewDistance } from "../../model/entities/NewDistance.js";
+import {
+  ApiSnapshot,
+  CumulativePayloadTotals,
+  Equipement,
+} from "@prisma/client";
 import UserError from "../../model/entities/UserError.js";
+import { ICPTRepository } from "../../model/repository/use_cases/ICPTRepository.js";
+import { PrismaCPTRepository } from "../../model/repository/infraestructure/PrismaCPTRepo.js";
+import { NewCPT } from "../../model/entities/NewCumulativePayloadTotals.js";
 
-export class DistanceController extends Controller {
-  private readonly repo: IDistanceRepository = new PrismaDistanceRepository();
+export class CPTController extends Controller {
+  private readonly repo: ICPTRepository = new PrismaCPTRepository();
   private readonly snapshotRepo: ISnapshotRepository =
     new PrismaSnapshotRepository();
   private readonly equipementRepo: IEquipementRepository =
@@ -21,25 +25,24 @@ export class DistanceController extends Controller {
     const defaultVal = "campo desconocido";
 
     const campos: { [key: string]: string } = {
-      distance_id: "ID del registro",
-      odometer: "valor del odómetro",
-      odometer_units: "unidades odómetro",
       active: "activo o inactivo",
       date_time: "fecha y hora",
       snapshot_id: "ID de la snapshot",
       serial_number: "numero de serie",
+      cpt_id: "ID del registro",
+      payload_units: "unidades de carga util",
+      payload: "carga util",
     };
 
     return campos[key] ?? defaultVal;
   }
 
   protected async performAdd(r: Request): Promise<void> {
-    const { odometer, odometer_units, date_time, serial_number } = r.body;
-
-    const distance: Partial<NewDistance> = {
-      odometer: odometer !== undefined ? Number(odometer) : undefined,
-      odometer_units:
-        odometer_units !== undefined ? String(odometer_units) : undefined,
+    const { date_time, payload_units, payload, serial_number } = r.body;
+    const record: Partial<NewCPT> = {
+      payload_units:
+        payload_units !== undefined ? `${payload_units}` : undefined,
+      payload: payload !== undefined ? Number(payload) : undefined,
       date_time: new Date(date_time),
       snapshot_id: null,
     };
@@ -49,16 +52,16 @@ export class DistanceController extends Controller {
     if (isNaN(Date.parse(date_time)))
       msg.push("Formato de fecha y hora inválidos");
 
-    const keys = Object.keys(distance) as Array<keyof NewDistance>;
+    const keys = Object.keys(record) as Array<keyof NewCPT>;
     for (const key of keys) {
       if (key === "date_time") continue;
 
-      if (key !== "snapshot_id" && distance[key] === undefined) {
+      if (key !== "snapshot_id" && record[key] === undefined) {
         msg.push(`${this.translateKey(key)} no fue definido`);
         continue;
       }
 
-      if (typeof distance[key] === "number" && isNaN(distance[key])) {
+      if (typeof record[key] === "number" && isNaN(record[key])) {
         msg.push(`${this.translateKey(key)} debe ser un numero`);
         continue;
       }
@@ -68,7 +71,7 @@ export class DistanceController extends Controller {
       msg.push("Numero de serie requerido");
     } else {
       const equipement: Equipement | undefined = await this.equipementRepo.get(
-        String(serial_number),
+        `${serial_number}`,
       );
 
       if (!equipement) {
@@ -80,61 +83,62 @@ export class DistanceController extends Controller {
           snapshot_datetime: new Date(),
         });
 
-        distance.snapshot_id = snapshot.snapshot_id;
+        record.snapshot_id = snapshot.snapshot_id;
       }
     }
 
     if (msg.length > 0) throw new UserError(msg.join(", "));
-    await this.repo.add(distance as NewDistance);
+    await this.repo.add(record as NewCPT);
   }
 
   protected async performUpdate(r: Request): Promise<void> {
-    const { distance_id, odometer, odometer_units, active, date_time } = r.body;
+    const { cpt_id, date_time, payload_units, payload, active } = r.body;
+
+    const record: Partial<CumulativePayloadTotals> = {
+      active: active !== "false",
+      date_time: new Date(date_time),
+      snapshot_id: null,
+      cpt_id: cpt_id !== undefined ? Number(cpt_id) : undefined,
+      payload_units:
+        payload_units !== undefined ? `${payload_units}` : undefined,
+      payload: payload !== undefined ? Number(payload) : undefined,
+    };
 
     const msg = [];
-
-    const distance: Partial<Distance> = {
-      active: active !== "false",
-      odometer: odometer !== undefined ? Number(odometer) : undefined,
-      date_time: new Date(date_time),
-      odometer_units:
-        odometer_units !== undefined ? String(odometer_units) : undefined,
-      distance_id: distance_id !== undefined ? Number(distance_id) : undefined,
-    };
 
     if (isNaN(Date.parse(date_time)))
       msg.push("formato de fecha y hora inválidos");
 
-    const keys = Object.keys(distance) as Array<keyof Distance>;
+    const keys = Object.keys(record) as Array<keyof CumulativePayloadTotals>;
     for (const key of keys) {
       if (key === "date_time") continue;
 
-      if (key !== "snapshot_id" && distance[key] === undefined) {
+      if (key !== "snapshot_id" && record[key] === undefined) {
         msg.push(`${this.translateKey(key)} no fue definido`);
         continue;
       }
 
-      if (typeof distance[key] === "number" && isNaN(distance[key])) {
+      if (typeof record[key] === "number" && isNaN(record[key])) {
         msg.push(`${this.translateKey(key)} debe ser un numero`);
         continue;
       }
     }
 
-    const original = await this.repo.get(distance.distance_id as number);
-    if (original === undefined) msg.push("el regisstro a modificar no existe");
+    const original = await this.repo.get(record.cpt_id as number);
+    if (original === undefined) msg.push("el registro a modificar no existe");
     if (msg.length > 0) throw new UserError(msg.join(", "));
 
-    distance.snapshot_id = original?.snapshot_id as number;
-    await this.repo.update(distance as Distance);
+    record.snapshot_id = original?.snapshot_id as number;
+    await this.repo.update(record as CumulativePayloadTotals);
   }
 
   protected async performDetele(r: Request): Promise<void> {
-    const { distanceId } = r.params;
+    const { id } = r.params;
 
-    if (!distanceId) throw new UserError("No se proporcionó un ID");
+    if (!id) throw new UserError("No se proporcionó un ID");
 
     const validation = this.validateInt({
-      input: distanceId,
+      input: id,
       valueName: "localización",
       positiveNumber: false,
     });
@@ -145,17 +149,15 @@ export class DistanceController extends Controller {
 
     if (record === undefined) throw new UserError("Registro no encontrado");
 
-    // Elimina el equipo utilizando el número de serie
     await this.repo.delete(record);
   }
 
   protected async performGet(r: Request): Promise<unknown | undefined> {
-    const { distanceId } = r.params; // Obtenemos el número de serie desde los parámetros de la URL
-
-    if (!distanceId) throw new UserError("El ID no fue proporcionado");
+    const { id } = r.params;
+    if (!id) throw new UserError("El ID no fue proporcionado");
 
     const validation = this.validateInt({
-      input: distanceId,
+      input: id,
       valueName: "ID del registro",
       positiveNumber: false,
     });
@@ -167,28 +169,24 @@ export class DistanceController extends Controller {
 
   protected async performGetBy(r: Request): Promise<unknown> {
     const {
-      distanceId,
-      odometer,
-      odometerUnits,
-      active,
       dateTime,
+      payloadUnits,
+      payload,
+      active,
       pageNumber = "1",
     } = r.query;
 
     const msg = [];
 
-    const distance: Partial<Distance> = {
-      active: active !== "false",
-      odometer: odometer !== undefined ? Number(odometer) : undefined,
-      date_time:
-        dateTime !== undefined ? new Date(String(dateTime)) : undefined,
-      odometer_units:
-        odometerUnits !== undefined ? String(odometerUnits) : undefined,
-      distance_id: distanceId !== undefined ? Number(distanceId) : undefined,
+    const criteria: Partial<CumulativePayloadTotals> = {
+      active: active !== undefined ? active !== "false" : undefined,
+      date_time: dateTime !== undefined ? new Date(`${dateTime}`) : undefined,
+      payload: payload !== undefined ? Number(payload) : undefined,
+      payload_units: payloadUnits !== undefined ? `${payloadUnits}` : undefined,
     };
 
     const validation = this.validateInt({
-      input: String(pageNumber),
+      input: `${pageNumber}`,
       valueName: "número de página",
       positiveNumber: true,
     });
@@ -196,14 +194,14 @@ export class DistanceController extends Controller {
     if (dateTime !== undefined && isNaN(Date.parse(String(dateTime))))
       msg.push("formato de fecha y hora inválidos");
 
-    const keys = Object.keys(distance) as Array<keyof Distance>;
+    const keys = Object.keys(criteria) as Array<keyof CumulativePayloadTotals>;
     for (const key of keys) {
       if (key === "date_time") continue;
 
       if (
-        distance[key] !== undefined &&
-        typeof distance[key] === "number" &&
-        isNaN(distance[key])
+        criteria[key] !== undefined &&
+        typeof criteria[key] === "number" &&
+        isNaN(criteria[key])
       ) {
         msg.push(`${this.translateKey(key)} debe ser un numero`);
         continue;
@@ -212,6 +210,6 @@ export class DistanceController extends Controller {
 
     if (msg.length > 0) throw new UserError(msg.join(", "));
 
-    return await this.repo.getBy(distance, validation.number as number);
+    return await this.repo.getBy(criteria, validation.number as number);
   }
 }

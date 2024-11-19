@@ -9,6 +9,9 @@ import distanceRoutes from "./routes/DistanceRoutes.js";
 import cihRoutes from "./routes/CIHRoutes.js";
 import fuelRemainingRoutes from "./routes/FuelRemaining.js";
 import defRemainingRoutes from "./routes/DEFRemaining.js";
+import engineStatusRoutes from "./routes/EngineStatusRoutes.js";
+import clcController from "./routes/CLCRoutes.js";
+import cptController from "./routes/CPTRoutes.js";
 
 const apiRouter = Router();
 
@@ -22,5 +25,8 @@ apiRouter.use("/distancia", distanceRoutes);
 apiRouter.use("/cih", cihRoutes);
 apiRouter.use("/combustibleRestante", fuelRemainingRoutes);
 apiRouter.use("/DEFRestante", defRemainingRoutes);
+apiRouter.use("/estadoMotor", engineStatusRoutes);
+apiRouter.use("/clc", clcController);
+apiRouter.use("/cpt", cptController);
 
 export default apiRouter;
