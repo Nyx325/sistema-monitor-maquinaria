@@ -82,4 +82,8 @@ router.get("/clc", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/views/clc.html"));
 });
 
+router.get("/cpt", (_req, res) => {
+  res.sendFile(path.join(__dirname, "../public/views/cpt.html"));
+});
+
 export default router;

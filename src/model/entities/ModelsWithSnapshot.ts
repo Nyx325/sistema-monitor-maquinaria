@@ -39,3 +39,7 @@ export type CLCWithSnapshot = Prisma.CumulativeLoadCountGetPayload<{
 export type EngineStatusWithSnapshot = Prisma.EngineStatusGetPayload<{
   include: { snapshot: true };
 }>;
+
+export type CPTWithSnapshot = Prisma.CumulativePayloadTotalsGetPayload<{
+  include: { snapshot: true };
+}>;
