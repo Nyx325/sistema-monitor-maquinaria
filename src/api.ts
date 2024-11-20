@@ -13,6 +13,7 @@ import engineStatusRoutes from "./routes/EngineStatusRoutes.js";
 import clcController from "./routes/CLCRoutes.js";
 import cptController from "./routes/CPTRoutes.js";
 import faultCodeController from "./routes/FaultCodeRoutes.js";
+import usersController from "./routes/UserRoutes.js";
 
 const apiRouter = Router();
 
@@ -30,5 +31,6 @@ apiRouter.use("/estadoMotor", engineStatusRoutes);
 apiRouter.use("/clc", clcController);
 apiRouter.use("/cpt", cptController);
 apiRouter.use("/codigosError", faultCodeController);
+apiRouter.use("/usuarios", usersController);
 
 export default apiRouter;

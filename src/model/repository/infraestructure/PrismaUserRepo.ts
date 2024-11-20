@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client/extension";
+import { PrismaClient } from "@prisma/client";
 import { IConnector } from "../../../controller/use_cases/IConnector.js";
 import { UserRepository } from "../use_cases/UserRepository.js";
 import { PrismaConnector } from "../../../controller/infraestructure/PrismaConnector.js";
@@ -97,7 +97,7 @@ export class PrismaUserRepo implements UserRepository {
 
       // Ejecutar las consultas de forma concurrente si no dependen entre sí
       const [totalResults, results] = await Promise.all([
-        conn.equipement.count({
+        conn.user.count({
           where: {
             full_name: criteria.full_name
               ? { contains: criteria.full_name }
@@ -110,7 +110,7 @@ export class PrismaUserRepo implements UserRepository {
             email: criteria.email,
           },
         }),
-        conn.equipement.findMany({
+        conn.user.findMany({
           where: {
             full_name: criteria.full_name
               ? { contains: criteria.full_name }
@@ -147,35 +147,6 @@ export class PrismaUserRepo implements UserRepository {
     criteria: Partial<User>,
     pageNumber: number,
   ): Promise<Search<User>> {
-    let conn: PrismaClient | null = null;
-    try {
-      conn = await this.connector.getConnection();
-
-      // Ejecutar las consultas de forma concurrente si no dependen entre sí
-      const [totalResults, results] = await Promise.all([
-        conn.equipement.count({
-          where: criteria,
-        }),
-        conn.equipement.findMany({
-          where: criteria,
-          skip: (pageNumber - 1) * Config.instance.pageSize, // Skip previous pages
-          take: Config.instance.pageSize, // Take only the results for the current page
-        }),
-      ]);
-
-      const totalPages = Math.ceil(totalResults / Config.instance.pageSize);
-
-      return {
-        totalPages: totalPages,
-        currentPage: pageNumber,
-        criteria: criteria,
-        result: results.length > 0 ? results : [],
-      };
-    } catch (error) {
-      console.error(`Repository: ${error}`);
-      throw error;
-    } finally {
-      if (conn !== null) this.connector.releaseConnection(conn);
-    }
+    return await this.getBy(criteria, pageNumber);
   }
 }
