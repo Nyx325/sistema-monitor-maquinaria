@@ -1,0 +1,3 @@
+import { User } from "@prisma/client";
+
+export type NewUser = Omit<User, "active" | "user_id">;
