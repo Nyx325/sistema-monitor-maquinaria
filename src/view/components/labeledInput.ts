@@ -1,7 +1,7 @@
 export default class LabeledInput {
   private container: HTMLElement;
   private label: HTMLLabelElement;
-  private input: HTMLInputElement;
+  public input: HTMLInputElement;
 
   constructor({
     containerId,
