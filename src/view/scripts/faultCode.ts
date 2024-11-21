@@ -102,7 +102,7 @@ class FaultCodeView extends View<FaultCodeWithSnapshot> {
 
   protected async initTable(): Promise<void> {
     await super.initTable({
-      title: "Carga util acumulada",
+      title: "Códigos de error",
       headers: [
         "Numero de serie",
         "Fecha y hora",

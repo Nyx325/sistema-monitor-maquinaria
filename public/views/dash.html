@@ -15,11 +15,7 @@
   </head>
   <body>
     <nav class="sidebar">
-      <h2>Proyectos y construcciones Marsal</h2>
-      <br />
-      <ul>
-        <li><a href="/reportes">Reportes</a></li>
-      </ul>
+      <h2>Proyectos y construcciones Marsal S.A.de C.V</h2>
       <br /><br /><br />
       <img src="/assets/img/imgendash.jpg" />
     </nav>
@@ -31,8 +27,8 @@
         <button id="logout">Cerrar Sesión</button>
       </header>
       <br /><br /><br /><br />
+      <div class="stats">
 
-      <section class="stats">
         <div class="row">
           <a href="Usuarios.html" class="card">
             <i class="bx bxs-user"></i><br />
@@ -62,7 +58,7 @@
         <div class="row">
           <a href="/combustibleUsado24" class="card">
             <i class="bx bxs-gas-pump"></i> <br />
-            Combustible de las ultimas 24 hrs <span id="combtotal"></span>
+            Combustible de las últimas 24 hrs <span id="combtotal"></span>
           </a>
           <a href="/clc" class="card">
             <i class="bx bxs-truck"></i><br />
@@ -90,7 +86,40 @@
             <i class="bx bxs-bell"></i><br />
             Estado del motor <span id="statusmotor"></span>
           </a>
+          <a href="/codigosError" class="card">
+            <i class="bx bxs-error"></i><br />
+            Códigos de error <span id="faultCode"></span>
+          </a>
         </div>
+      </div>
+      <br>
+      <hr>
+      <div class="stats reports">
+        <h2>Generación de repotes</h2>
+
+        <div class="row">
+          <a href="/reporte" class="card">
+            <i class="bx bxs-calendar"></i><br />
+            Reporte general de promedios de todos los equipos
+          </a>
+          <a href="/reporte" class="card">
+            <i class="bx bxs-calendar-week"></i><br />
+            Reporte de tiempo operativo y cargas
+          </a>
+          <a href="/reporte" class="card">
+            <i class="bx bxs-calendar-week"></i><br />
+            Reporte de consumo de la maquinaría          </a>
+          <a href="/reporte" class="card">
+            <i class="bx bxs-calendar-event"></i><br />
+            Reporte de análisis de códigos de error
+          </a>
+          <a href="/reporte" class="card">
+            <i class="bx bxs-calendar-edit"></i><br />
+            Reporte de rendimiento del motor actividad e inactividad y
+            productividad
+          </a>
+        </div>
+      </div>
       </section>
     </main>
   </body>
