@@ -1,4 +1,5 @@
 import { Search } from "../../model/entities/Search.js";
+import { UserData } from "../../model/entities/UserData.js";
 import { Adapter } from "../adapters/Adapter.js";
 import { AuthAdapter } from "../adapters/AuthAdapter.js";
 import Activity from "../components/activity.js";
@@ -108,9 +109,19 @@ export abstract class View<T extends Record<string, unknown>> {
       maxBtns: 5,
     });
 
-    this.initialize();
+    const cookie = this.auth.getCookie();
+    if (cookie === null) {
+      window.location.href = "/login";
+      return;
+    }
 
-    if (this.auth.getCookie() === null) window.location.href = "/login";
+    const usr: UserData = JSON.parse(cookie);
+    if (usr.user_type !== "MANAGER" && usr.user_type !== "ADMIN") {
+      window.location.href = "/";
+      return;
+    }
+
+    this.initialize();
   }
 
   protected initialize(): void {
