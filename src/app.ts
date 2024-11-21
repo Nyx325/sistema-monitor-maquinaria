@@ -90,4 +90,8 @@ router.get("/codigosError", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/views/faultCode.html"));
 });
 
+router.get("/reporte1", (_req, res) => {
+  res.sendFile(path.join(__dirname, "../public/views/report1.html"));
+});
+
 export default router;

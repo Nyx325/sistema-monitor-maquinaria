@@ -27,13 +27,9 @@
         <button id="logout">Cerrar Sesión</button>
       </header>
       <br /><br /><br /><br />
-      <div class="stats">
-
+      <div id="manager-section" class="stats">
+        <h2>Gestiones</h2>
         <div class="row">
-          <a href="Usuarios.html" class="card">
-            <i class="bx bxs-user"></i><br />
-            Usuarios <span id="users"></span>
-          </a>
           <a href="/equipos" class="card">
             <i class="bx bxs-cog"></i> <br />
             Maquinaria <span id="machines"></span>
@@ -92,9 +88,9 @@
           </a>
         </div>
       </div>
-      <br>
-      <hr>
-      <div class="stats reports">
+      <br />
+      <hr />
+      <div id="analyst-section" class="stats reports">
         <h2>Generación de repotes</h2>
 
         <div class="row">
@@ -108,7 +104,8 @@
           </a>
           <a href="/reporte" class="card">
             <i class="bx bxs-calendar-week"></i><br />
-            Reporte de consumo de la maquinaría          </a>
+            Reporte de consumo de la maquinaría
+          </a>
           <a href="/reporte" class="card">
             <i class="bx bxs-calendar-event"></i><br />
             Reporte de análisis de códigos de error
@@ -120,6 +117,15 @@
           </a>
         </div>
       </div>
+      <hr />
+      <section id="admin-section" class="stats">
+        <h2>Administración</h2>
+        <div class="row">
+          <a href="Usuarios.html" class="card">
+            <i class="bx bxs-user"></i><br />
+            Usuarios <span id="users"></span>
+          </a>
+        </div>
       </section>
     </main>
   </body>

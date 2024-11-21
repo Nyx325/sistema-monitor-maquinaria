@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Request, Response, Router } from "express";
 import equipementRoutes from "./routes/EquipementRoutes.js";
 import locationRoutes from "./routes/LocationRoutes.js";
 import snapshotRoutes from "./routes/SnapshotRoutes.js";
@@ -15,6 +15,7 @@ import cptController from "./routes/CPTRoutes.js";
 import faultCodeController from "./routes/FaultCodeRoutes.js";
 import usersController from "./routes/UserRoutes.js";
 import authRouter from "./routes/auth.js";
+import reportController from "./routes/ReportsRouter.js";
 
 const apiRouter = Router();
 
@@ -34,5 +35,6 @@ apiRouter.use("/cpt", cptController);
 apiRouter.use("/codigosError", faultCodeController);
 apiRouter.use("/usuarios", usersController);
 apiRouter.use("/auth", authRouter);
+apiRouter.use("/reportes", reportController);
 
 export default apiRouter;
