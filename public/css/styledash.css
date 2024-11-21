@@ -79,14 +79,31 @@ header img.logo {
     background-color: #95332e; 
 }
 .reports .card {
-    background-color: #95332e; 
-    color: rgb(250, 250, 253); 
-    border: none; 
-    transition: background-color 0.3s ease; 
+    width: 200px;
+    padding: 10px; 
+    font-size: 14px; 
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    background-color: #8B0000;
+    color: white; 
+    border-radius: 10px;
   }
-  
+  .reports .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5px; 
+    justify-content: center;
+  }
+
+ 
   .reports .card:hover {
     background-color: #3b3b98; 
+  }
+  /* para iconos*/
+  .reports .card i {
+    font-size: 20px;
+    margin-bottom: 2px;
   }
 
 @media (max-width: 768px) {
