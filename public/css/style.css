@@ -18,8 +18,8 @@ body {
 
 .container-form {
     color: black;
-    width: 125%;
-    height: 120vh;
+    width: 100%;
+    height: vh;
     display: flex;
     justify-content: space-around;
     transition:  all .5s ease-out;
@@ -35,7 +35,7 @@ body {
 }
 
 .message {
-  background-color: #2222227d;
+  background-color: #0c0c0c7d;
   padding: 1rem ;
 
 }
@@ -59,9 +59,41 @@ body {
     color: #ffffff;
 }
 
+.mensaje button:hover {
+    background-color: #6464f8;
+}
+
+
+.mensaje button {
+    padding: 1rem;
+    font-weight: 400;
+    background-color: #dc0e19;
+    border-radius: 2rem;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-size: .9rem;
+    margin-top: 2rem;
+    transition: all .3s ease-in;
+    color: #ffffff;
+}
+
 .message button:hover {
     background-color: #6464f8;
 }
+.mensaje {
+    background-color: #0c0c0c7d;
+    padding: 1rem ;
+  
+  }
+  
+  .mensaje h2 {
+      font-size: 1.7rem;
+      padding: 1rem ;
+  }
+
+
+
 
 .formulario {
     width: 400px;
@@ -101,7 +133,7 @@ body {
     cursor: pointer;
 }
 
-.cuenta-gratis {
+.cuenta {
     padding: 2rem 0;
 }
 
@@ -117,7 +149,7 @@ body {
     outline: none;
     padding: .2rem 0;
     font-size: .9rem;
-    color: rgb(255, 255, 255);
+    color: rgb(6, 6, 6);
 }
 
 .formulario input[type="button"] {
