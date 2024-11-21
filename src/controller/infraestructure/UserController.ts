@@ -204,7 +204,6 @@ export class UserController extends Controller {
 
   async auth(req: Request, res: Response) {
     try {
-      console.log("A");
       const { user_name, user_password } = req.body;
       const msg = [];
       if (user_name === undefined) msg.push("nombre de usuario no definido");

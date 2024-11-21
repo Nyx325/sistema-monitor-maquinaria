@@ -16,8 +16,6 @@ export class AuthAdapter {
   ): Promise<UserData | null> {
     const url = `${this.utils.apiUrl}/${this.endpoint}`;
     const body = JSON.stringify({ user_name, user_password });
-    console.log(url);
-    console.log(body);
 
     const response = await fetch(url, {
       method: "POST",
@@ -27,7 +25,6 @@ export class AuthAdapter {
       body,
     });
 
-    console.log("fetch");
     if (response.status === 404) return null;
 
     let responseText: string;

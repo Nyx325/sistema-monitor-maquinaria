@@ -22,14 +22,10 @@ class LoginView {
   }
 
   init() {
-    console.log("hola");
     this.btn.addEventListener("click", async () => {
-      console.log("click");
       const usr = this.inputs.usr.value.trim();
       const pwd = this.inputs.pwd.value.trim();
       const userData = await this.adapter.auth(usr, pwd);
-      console.log(userData);
-      console.log("click2");
 
       if (userData === null) {
         alert("Usuario o contraseña incorrectos");

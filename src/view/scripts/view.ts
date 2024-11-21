@@ -19,6 +19,9 @@ export abstract class View<T extends Record<string, unknown>> {
     cancelBtn: HTMLButtonElement;
   };
 
+  protected auth: AuthAdapter = new AuthAdapter();
+  protected logout: HTMLButtonElement;
+
   protected crudBtns: {
     add: HTMLButtonElement;
     update: HTMLButtonElement;
@@ -62,6 +65,15 @@ export abstract class View<T extends Record<string, unknown>> {
       inputs[opt.key] = new LabeledInput(opt.inputOpts);
     }
 
+    this.logout = document.getElementsByClassName(
+      "logout-button",
+    )[0] as HTMLButtonElement;
+
+    this.logout.addEventListener("click", () => {
+      this.auth.deleteCookie();
+      window.location.href = "/login";
+    });
+
     this.form = {
       alert: new Alert(opts.alert),
       legend: document.getElementById(opts.legend) as HTMLLegendElement,
@@ -98,8 +110,7 @@ export abstract class View<T extends Record<string, unknown>> {
 
     this.initialize();
 
-    const auth = new AuthAdapter();
-    if (auth.getCookie() === null) window.location.href = "/login";
+    if (this.auth.getCookie() === null) window.location.href = "/login";
   }
 
   protected initialize(): void {
