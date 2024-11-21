@@ -5,8 +5,12 @@ import { IConnector } from "../../../controller/use_cases/IConnector.js";
 import { PrismaConnector } from "../../../controller/infraestructure/PrismaConnector.js";
 import { Search } from "../../entities/Search.js";
 import Config from "../../../config.js";
+import { IUserRepository } from "../use_cases/IUserRepository.js";
 
-export class PrismaUserRepository extends Repository<User, NewUser, number> {
+export class PrismaUserRepository
+  extends Repository<User, NewUser, number>
+  implements IUserRepository
+{
   private readonly connector: IConnector<PrismaClient>;
 
   constructor() {
@@ -91,6 +95,8 @@ export class PrismaUserRepository extends Repository<User, NewUser, number> {
         }),
       ]);
 
+      for (let i = 0; i < results.length; i++) results[i].user_password = "";
+
       const totalPages = Math.ceil(totalResults / Config.instance.pageSize);
 
       return {
@@ -107,5 +113,19 @@ export class PrismaUserRepository extends Repository<User, NewUser, number> {
     pageNumber: number,
   ): Promise<Search<User>> {
     return await this.getBy(criteria, pageNumber);
+  }
+
+  async getUser(
+    user_name: string,
+    user_password: string,
+  ): Promise<User | null> {
+    return this.executeWithConnection((conn) => {
+      return conn.user.findFirst({
+        where: {
+          user_name,
+          user_password,
+        },
+      });
+    });
   }
 }

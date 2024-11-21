@@ -14,6 +14,7 @@ import clcController from "./routes/CLCRoutes.js";
 import cptController from "./routes/CPTRoutes.js";
 import faultCodeController from "./routes/FaultCodeRoutes.js";
 import usersController from "./routes/UserRoutes.js";
+import authRouter from "./routes/auth.js";
 
 const apiRouter = Router();
 
@@ -32,5 +33,6 @@ apiRouter.use("/clc", clcController);
 apiRouter.use("/cpt", cptController);
 apiRouter.use("/codigosError", faultCodeController);
 apiRouter.use("/usuarios", usersController);
+apiRouter.use("/auth", authRouter);
 
 export default apiRouter;

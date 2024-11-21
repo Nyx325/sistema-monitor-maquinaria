@@ -1,5 +1,6 @@
 import { Search } from "../../model/entities/Search.js";
 import { Adapter } from "../adapters/Adapter.js";
+import { AuthAdapter } from "../adapters/AuthAdapter.js";
 import Activity from "../components/activity.js";
 import Alert from "../components/alert.js";
 import LabeledInput from "../components/labeledInput.js";
@@ -96,6 +97,9 @@ export abstract class View<T extends Record<string, unknown>> {
     });
 
     this.initialize();
+
+    const auth = new AuthAdapter();
+    if (auth.getCookie() === null) window.location.href = "/login";
   }
 
   protected initialize(): void {

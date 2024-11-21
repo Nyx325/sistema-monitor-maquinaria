@@ -132,4 +132,23 @@ export abstract class Controller implements IController {
       msg: undefined,
     };
   }
+
+  setCookie(name: string, value: unknown, days: number) {
+    const date = new Date();
+    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000); // Expiración en días
+    const expires = "expires=" + date.toUTCString();
+    document.cookie = `${name}=${value}; ${expires}; path=/`; // El "path=/" asegura que la cookie esté disponible en todo el sitio
+  }
+
+  getCookie(name: string) {
+    const nameEQ = name + "=";
+    const cookies = document.cookie.split(";"); // Divide las cookies en un array
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim(); // Elimina espacios
+      if (cookie.indexOf(nameEQ) === 0) {
+        return cookie.substring(nameEQ.length); // Retorna el valor de la cookie
+      }
+    }
+    return null; // Si no se encuentra la cookie
+  }
 }

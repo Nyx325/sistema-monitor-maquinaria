@@ -1,13 +1,13 @@
-import { Request } from "express";
-import { PrismaUserRepo } from "../../model/repository/infraestructure/PrismaUserRepo.js";
+import { Request, Response } from "express";
 import { IUserRepository } from "../../model/repository/use_cases/IUserRepository.js";
 import { Controller } from "../use_cases/Controller.js";
 import { $Enums, User } from "@prisma/client";
 import { NewUser } from "../../model/entities/NewUser.js";
 import UserError from "../../model/entities/UserError.js";
+import { PrismaUserRepository } from "../../model/repository/infraestructure/PrismaUserRepository.js";
 
 export class UserController extends Controller {
-  private readonly repo: IUserRepository = new PrismaUserRepo();
+  private readonly repo: IUserRepository = new PrismaUserRepository();
 
   translateKey(key: string): string {
     const defaultVal = "campo desconocido";
@@ -200,5 +200,33 @@ export class UserController extends Controller {
     if (msg.length > 0) throw new UserError(msg.join(", "));
 
     return await this.repo.getBy(criteria, page as number);
+  }
+
+  async auth(req: Request, res: Response) {
+    try {
+      console.log("A");
+      const { user_name, user_password } = req.body;
+      const msg = [];
+      if (user_name === undefined) msg.push("nombre de usuario no definido");
+      if (user_password === undefined) msg.push("contraseña no definida");
+
+      if (msg.length !== 0) throw new UserError(msg.join(", "));
+      const usr = await this.repo.getUser(`${user_name}`, `${user_password}`);
+
+      if (usr === null) {
+        res.status(404).json();
+        return;
+      }
+
+      res.status(200).json({
+        user_id: usr.user_id,
+        user_name: usr.user_name,
+        full_name: usr.full_name,
+        email: usr.email,
+        user_type: usr.user_type,
+      });
+    } catch (e) {
+      this.handleError(e, res);
+    }
   }
 }
