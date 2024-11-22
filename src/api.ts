@@ -1,4 +1,4 @@
-import { Request, Response, Router } from "express";
+import { Router } from "express";
 import equipementRoutes from "./routes/EquipementRoutes.js";
 import locationRoutes from "./routes/LocationRoutes.js";
 import snapshotRoutes from "./routes/SnapshotRoutes.js";

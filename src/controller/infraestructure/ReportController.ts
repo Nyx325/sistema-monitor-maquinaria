@@ -150,7 +150,39 @@ export class ReportController {
       }),
     );
 
+    const [coh, fuelUsed, distance, cih, fuelRemaining, defRemaining] =
+      await Promise.all([
+        this.prisma.$queryRaw<
+          AvgResult[]
+        >`SELECT ROUND(AVG(hour), 4) AS avg FROM CumulativeOperatingHours WHERE date_time >= ${start.toISOString()} AND date_time <= ${end.toISOString()}`,
+        this.prisma.$queryRaw<
+          AvgResult[]
+        >`SELECT ROUND(AVG(fuel_consumed), 4) AS avg FROM FuelUsed WHERE date_time >= ${start.toISOString()} AND date_time <= ${end.toISOString()}`,
+        this.prisma.$queryRaw<
+          AvgResult[]
+        >`SELECT ROUND(AVG(odometer), 4) AS avg FROM Distance WHERE date_time >= ${start.toISOString()} AND date_time <= ${end.toISOString()}`,
+        this.prisma.$queryRaw<
+          AvgResult[]
+        >`SELECT ROUND(AVG(hour), 4) AS avg FROM CumulativeIdleHours WHERE date_time >= ${start.toISOString()} AND date_time <= ${end.toISOString()}`,
+        this.prisma.$queryRaw<
+          AvgResult[]
+        >`SELECT ROUND(AVG(percent), 4) AS avg FROM FuelRemaining WHERE date_time >= ${start.toISOString()} AND date_time <= ${end.toISOString()}`,
+        this.prisma.$queryRaw<
+          AvgResult[]
+        >`SELECT ROUND(AVG(percent), 4) AS avg FROM DefRemaining WHERE date_time >= ${start.toISOString()} AND date_time <= ${end.toISOString()}`,
+      ]);
+
     // Devolver los promedios por intervalo junto con las fechas
-    res.status(200).json(results);
+    res.status(200).json({
+      generalAvg: {
+        coh: Number(coh[0].avg),
+        fuelUsed: Number(fuelUsed[0].avg),
+        distance: Number(distance[0].avg),
+        cih: Number(distance[0].avg),
+        fuelRemaining: Number(fuelRemaining[0].avg),
+        defRemaining: Number(fuelRemaining[0].avg),
+      },
+      rangedAvg: results,
+    });
   }
 }
