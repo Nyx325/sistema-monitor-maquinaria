@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import UserError from "../../model/entities/UserError.js";
 import { PrismaClient } from "@prisma/client";
+import { AverageData } from "../../model/entities/AverageData.js";
 
 type AvgResult = { avg: number | null };
 
@@ -115,7 +116,7 @@ export class ReportController {
           ]);
 
         // Si el valor es null, lo reemplazamos por 0
-        return {
+        const result: AverageData = {
           dateRange: `${start.toISOString().split("T")[0]} - ${end.toISOString().split("T")[0]}`, // Formato de fecha de inicio y fin
           cohAvg: coh[0]?.avg ?? 0,
           fuelUsedAvg: fuelUsed[0]?.avg ?? 0,
