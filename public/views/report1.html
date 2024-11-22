@@ -1,16 +1,8 @@
 <!doctype html>
 <html lang="es">
-  <header>
-    <img src="/assets/img/LogoMarsal.png" class="logo" />
-    <h1>Sistema de monitoreo para activos MARSAL</h1>
-    <button id="logout">Cerrar Sesión</button>
-  </header>
-  <br />
-
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gráfico Reporte</title>
     <link rel="stylesheet" href="/css/stylereport1.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link
@@ -24,9 +16,15 @@
       integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
       crossorigin="anonymous"
     ></script>
+    <title>Promedios generales</title>
   </head>
-
   <body>
+    <header>
+      <img src="/assets/img/LogoMarsal.png" class="logo" />
+      <h1>Sistema de monitoreo para activos MARSAL</h1>
+      <button id="logout">Cerrar Sesión</button>
+    </header>
+    <br />
     <main class="main-content">
       <div id="alert" class="alert alert-danger d-none"></div>
       <form>

@@ -51,7 +51,7 @@ export class ReportController {
   }
 
   public reporte3(req: Request, res: Response) {
-    return this.execute(req, res, this.performReport1);
+    return this.execute(req, res, this.performReport3.bind(this));
   }
 
   public reporte4(req: Request, res: Response) {
@@ -245,6 +245,119 @@ export class ReportController {
       WHERE 
           Equipement.serial_number LIKE ${`%${serialNumber}%`} AND
           ApiSnapshot.snapshot_datetime BETWEEN '2024-01-01 00:00:00' AND '2025-01-31 23:59:59';
+    `;
+
+    // Convertir BigInt a number (puede causar pérdida de precisión si el número es muy grande)
+    const total = Number(totalRows[0]?.total || 0);
+    const totalPages = Math.ceil(total / size);
+
+    const result: Search<unknown> = {
+      result: [rows],
+      totalPages,
+      currentPage,
+      criteria: {
+        serialNumber,
+      },
+    };
+
+    // Respuesta con la información de paginación
+    res.status(200).json(result);
+  }
+
+  // hora = Combustible usado total / Horas operativas acumulada
+  async performReport3(req: Request, res: Response) {
+    const { serialNumber = "", page = "1" } = req.query;
+
+    // Convertir page y pageSize a números enteros
+    const pageParse = parseInt(page as string, 10);
+    const currentPage = isNaN(pageParse) ? 1 : pageParse;
+
+    const size = this.cfg.pageSize;
+    const offset = (currentPage - 1) * size;
+    const rows = await this.prisma.$queryRaw`
+      WITH LatestFuelUsed AS (
+          SELECT 
+              s.serial_number,
+              f.fuel_consumed,
+              f.date_time
+          FROM FuelUsed f
+          JOIN ApiSnapshot s ON f.snapshot_id = s.snapshot_id
+          WHERE 
+          f.date_time = (
+              SELECT MAX(f2.date_time)
+              FROM FuelUsed f2
+              JOIN ApiSnapshot s2 ON f2.snapshot_id = s2.snapshot_id
+              WHERE s2.serial_number = s.serial_number
+          )
+      ),
+      LatestCumulativeHours AS (
+          SELECT 
+              s.serial_number,
+              c.hour,
+              c.date_time
+          FROM CumulativeOperatingHours c
+          JOIN ApiSnapshot s ON c.snapshot_id = s.snapshot_id
+          WHERE 
+          c.date_time = (
+              SELECT MAX(c2.date_time)
+              FROM CumulativeOperatingHours c2
+              JOIN ApiSnapshot s2 ON c2.snapshot_id = s2.snapshot_id
+              WHERE s2.serial_number = s.serial_number
+          )
+      )
+      SELECT 
+          f.serial_number AS equipo,
+          f.fuel_consumed AS combustible_usado_acumulado,
+          c.hour AS horas_operativas_acumuladas,
+          ROUND(IF(c.hour > 0, f.fuel_consumed / c.hour, NULL), 4) AS combustible_por_hora
+      FROM LatestFuelUsed f
+      JOIN LatestCumulativeHours c ON f.serial_number = c.serial_number
+      WHERE f.serial_number LIKE ${`%${serialNumber}%`}
+      GROUP BY f.serial_number
+      ORDER BY f.serial_number
+      LIMIT ${size} OFFSET ${offset};
+    `;
+
+    const totalRows = await this.prisma.$queryRaw<{ total: bigint }[]>`
+      WITH LatestFuelUsed AS (
+          SELECT 
+              s.serial_number,
+              f.fuel_consumed,
+              f.date_time
+          FROM FuelUsed f
+          JOIN ApiSnapshot s ON f.snapshot_id = s.snapshot_id
+          WHERE 
+          f.date_time = (
+              SELECT MAX(f2.date_time)
+              FROM FuelUsed f2
+              JOIN ApiSnapshot s2 ON f2.snapshot_id = s2.snapshot_id
+              WHERE s2.serial_number = s.serial_number
+          )
+      ),
+      LatestCumulativeHours AS (
+          SELECT 
+              s.serial_number,
+              c.hour,
+              c.date_time
+          FROM CumulativeOperatingHours c
+          JOIN ApiSnapshot s ON c.snapshot_id = s.snapshot_id
+          WHERE 
+          c.date_time = (
+              SELECT MAX(c2.date_time)
+              FROM CumulativeOperatingHours c2
+              JOIN ApiSnapshot s2 ON c2.snapshot_id = s2.snapshot_id
+              WHERE s2.serial_number = s.serial_number
+          )
+      )
+      SELECT COUNT(*) AS total
+      FROM (
+          SELECT 
+              f.serial_number AS equipo
+          FROM LatestFuelUsed f
+          JOIN LatestCumulativeHours c ON f.serial_number = c.serial_number
+      WHERE f.serial_number LIKE ${`%${serialNumber}%`}
+          GROUP BY f.serial_number
+      ) AS subquery;
     `;
 
     // Convertir BigInt a number (puede causar pérdida de precisión si el número es muy grande)

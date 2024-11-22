@@ -98,4 +98,8 @@ router.get("/reporte2", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/views/report2.html"));
 });
 
+router.get("/reporte3", (_req, res) => {
+  res.sendFile(path.join(__dirname, "../public/views/report3.html"));
+});
+
 export default router;

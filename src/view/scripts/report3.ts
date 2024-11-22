@@ -5,10 +5,10 @@ import TableView from "../components/tableView.js";
 import { Search } from "../../model/entities/Search.js";
 
 interface EquipmentData extends Record<string, unknown> {
-  serial_number: string;
-  horasInactivas: number;
-  horasOperativas: number;
-  proporcionInactiva: number | null;
+  equipo: string;
+  combustible_usado_acumulado: number;
+  horas_operativas_acumuladas: number;
+  combustible_por_hora: number;
 }
 
 class Adapter {
@@ -23,7 +23,7 @@ class Adapter {
     page: number,
   ): Promise<Search<EquipmentData>> {
     const response = await fetch(
-      `${this.apiUrl}/reportes/2?serialNumber=${serialNumber}&page=${page}`,
+      `${this.apiUrl}/reportes/3?serialNumber=${serialNumber}&page=${page}`,
     );
 
     if (response.status >= 400) {
@@ -67,28 +67,23 @@ class Report2View implements TableView {
     this.table.setTitle("Proporción de tiempo inactivo");
     this.table.setHeaders([
       "Número de serie",
-      "Horas inactivas",
-      "Horas operativas",
-      "Proporción",
-      "Proporción (%)",
+      "Combustible usado acumulado",
+      "Horas operativas acumuladas",
+      "Combustible por hora",
     ]);
 
     this.table.onParseData((record) => {
-      const proporcionInactiva = record.proporcionInactiva ?? 0;
-      const proporcionPorciento = (proporcionInactiva * 100).toFixed(2);
-
       return [
-        record.serial_number,
-        `${record.horasInactivas}`,
-        `${record.horasOperativas}`,
-        `${proporcionInactiva}`,
-        `${proporcionPorciento}`,
+        record.equipo,
+        `${record.combustible_usado_acumulado}`,
+        `${record.horas_operativas_acumuladas}`,
+        `${parseFloat(record.combustible_por_hora.toFixed(4))}`,
       ];
     });
 
     this.summitBtn.addEventListener("click", async () => {
       const sN = this.serialNumberI.value.trim();
-      this.table.lastSearch.criteria.serial_number = sN;
+      this.table.lastSearch.criteria.equipo = sN;
 
       await this.refreshTable();
     });
@@ -100,7 +95,7 @@ class Report2View implements TableView {
     const lastS = this.table.lastSearch;
 
     const search = await this.adapter.proporcionPorEquipo(
-      lastS.criteria.serial_number ?? "",
+      lastS.criteria.equipo ?? "",
       lastS.currentPage,
     );
 
