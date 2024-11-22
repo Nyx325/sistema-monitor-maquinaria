@@ -1,9 +1,9 @@
-import { View } from "../scripts/view.js";
 import { Table } from "./table.js";
 import Button from "./button.js";
+import TableView from "./tableView.js";
 
 export default class Pager<T extends Record<string, unknown>> {
-  private view: View<T>;
+  private view: TableView;
   private table: Table<T>;
   private container: HTMLElement;
   private maxBtns: number;
@@ -23,7 +23,7 @@ export default class Pager<T extends Record<string, unknown>> {
   }: {
     container: string;
     maxBtns: number;
-    view: View<T>;
+    view: TableView;
     table: Table<T>;
   }) {
     this.container = document.getElementById(container) as HTMLElement;

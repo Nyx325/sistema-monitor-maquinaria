@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import UserError from "../../model/entities/UserError.js";
 import { PrismaClient } from "@prisma/client";
+import Config from "../../config.js";
+import { Search } from "../../model/entities/Search.js";
 
 type AvgResult = { avg: number | null };
 type ReportData = {
@@ -11,6 +13,7 @@ type ReportData = {
 
 export class ReportController {
   protected prisma: PrismaClient;
+  protected cfg: Config = Config.instance;
 
   constructor() {
     this.prisma = new PrismaClient();
@@ -44,7 +47,7 @@ export class ReportController {
   }
 
   public reporte2(req: Request, res: Response) {
-    return this.execute(req, res, this.performReport1);
+    return this.execute(req, res, this.performReport2.bind(this));
   }
 
   public reporte3(req: Request, res: Response) {
@@ -68,7 +71,9 @@ export class ReportController {
       startDate: startDate !== undefined ? `${startDate}` : undefined,
       endDate: endDate !== undefined ? `${endDate}` : undefined,
       daysDifference:
-        daysDifference !== undefined ? Number(daysDifference) : undefined,
+        daysDifference !== undefined
+          ? parseInt(`${daysDifference}`)
+          : undefined,
     };
 
     const keys = Object.keys(params) as Array<keyof ReportData>;
@@ -84,7 +89,9 @@ export class ReportController {
       }
 
       if (typeof params[key] === "number" && params[key] <= 0)
-        msg.push("la diferencia de dias entre muestras debe ser mayor a 0");
+        msg.push(
+          "la diferencia de dias entre muestras debe ser un numero entero mayor a 0",
+        );
     }
 
     if (msg.length !== 0) throw new UserError(msg.join(", "));
@@ -178,11 +185,82 @@ export class ReportController {
         coh: Number(coh[0].avg),
         fuelUsed: Number(fuelUsed[0].avg),
         distance: Number(distance[0].avg),
-        cih: Number(distance[0].avg),
+        cih: Number(cih[0].avg),
         fuelRemaining: Number(fuelRemaining[0].avg),
-        defRemaining: Number(fuelRemaining[0].avg),
+        defRemaining: Number(defRemaining[0].avg),
       },
       rangedAvg: results,
     });
+  }
+
+  async performReport2(req: Request, res: Response) {
+    const { serialNumber = "", page = "1" } = req.query;
+
+    // Convertir page y pageSize a números enteros
+    const pageParse = parseInt(page as string, 10);
+    const currentPage = isNaN(pageParse) ? 1 : pageParse;
+
+    const size = this.cfg.pageSize;
+    const offset = (currentPage - 1) * size;
+
+    // Consulta principal con paginación
+    const rows = await this.prisma.$queryRaw`
+      SELECT 
+          Equipement.serial_number,
+          ROUND(COALESCE(SUM(CumulativeIdleHours.hour), 0), 4) AS horasInactivas,
+          ROUND(COALESCE(SUM(CumulativeOperatingHours.hour), 0), 4) AS horasOperativas,
+          ROUND(
+              COALESCE(SUM(CumulativeIdleHours.hour), 0) / 
+              (COALESCE(SUM(CumulativeIdleHours.hour), 0) + COALESCE(SUM(CumulativeOperatingHours.hour), 0)), 
+              4
+          ) AS proporcionInactiva
+      FROM 
+          Equipement
+      INNER JOIN 
+          ApiSnapshot ON Equipement.serial_number = ApiSnapshot.serial_number
+      LEFT JOIN 
+          CumulativeIdleHours ON ApiSnapshot.snapshot_id = CumulativeIdleHours.snapshot_id
+      LEFT JOIN 
+          CumulativeOperatingHours ON ApiSnapshot.snapshot_id = CumulativeOperatingHours.snapshot_id
+      WHERE 
+          Equipement.serial_number LIKE ${`%${serialNumber}%`} AND
+          ApiSnapshot.snapshot_datetime BETWEEN '2024-01-01 00:00:00' AND '2025-01-31 23:59:59'
+      GROUP BY 
+          Equipement.serial_number
+      LIMIT ${size} OFFSET ${offset};
+    `;
+
+    // Consulta para contar el total de filas (sin paginación)
+    const totalRows = await this.prisma.$queryRaw<{ total: bigint }[]>`
+      SELECT 
+          COUNT(DISTINCT Equipement.serial_number) AS total
+      FROM 
+          Equipement
+      INNER JOIN 
+          ApiSnapshot ON Equipement.serial_number = ApiSnapshot.serial_number
+      LEFT JOIN 
+          CumulativeIdleHours ON ApiSnapshot.snapshot_id = CumulativeIdleHours.snapshot_id
+      LEFT JOIN 
+          CumulativeOperatingHours ON ApiSnapshot.snapshot_id = CumulativeOperatingHours.snapshot_id
+      WHERE 
+          Equipement.serial_number LIKE ${`%${serialNumber}%`} AND
+          ApiSnapshot.snapshot_datetime BETWEEN '2024-01-01 00:00:00' AND '2025-01-31 23:59:59';
+    `;
+
+    // Convertir BigInt a number (puede causar pérdida de precisión si el número es muy grande)
+    const total = Number(totalRows[0]?.total || 0);
+    const totalPages = Math.ceil(total / size);
+
+    const result: Search<unknown> = {
+      result: [rows],
+      totalPages,
+      currentPage,
+      criteria: {
+        serialNumber,
+      },
+    };
+
+    // Respuesta con la información de paginación
+    res.status(200).json(result);
   }
 }

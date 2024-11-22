@@ -1,14 +1,11 @@
 <!doctype html>
 <html lang="es">
-
-<main class="main-content">
   <header>
     <img src="/assets/img/LogoMarsal.png" class="logo" />
     <h1>Sistema de monitoreo para activos MARSAL</h1>
     <button id="logout">Cerrar Sesión</button>
   </header>
-  <br>
-
+  <br />
 
   <head>
     <meta charset="UTF-8" />
@@ -28,256 +25,269 @@
       crossorigin="anonymous"
     ></script>
   </head>
-  
+
   <body>
-    <div id="alert" class="alert alert-danger d-none"></div>
-    <form>
-      <!-- Elementos HTML para la entrada de datos -->
-      <label for="start-date">Fecha de inicio</label>
-      <input type="date" id="start-date" required />
+    <main class="main-content">
+      <div id="alert" class="alert alert-danger d-none"></div>
+      <form>
+        <!-- Elementos HTML para la entrada de datos -->
+        <label for="start-date">Fecha de inicio</label>
+        <input type="date" id="start-date" required />
 
-      <label for="end-date">Fecha de fin</label>
-      <input type="date" id="end-date" required />
+        <label for="end-date">Fecha de fin</label>
+        <input type="date" id="end-date" required />
 
-      <label for="days-difference">Días de diferencia</label>
-      <input type="number" id="days-difference" required />
+        <label for="days-difference">Días de diferencia</label>
+        <input type="number" id="days-difference" required />
 
-      <button id="summit-btn" type="button">Generar Reporte</button>
-    </form>
+        <button id="summit-btn" type="button">Generar Reporte</button>
+      </form>
 
       <table id="general-avg"></table>
-    <!-- Contenedor para los gráficos -->
-    <div id="charts-container"></div>
+      <!-- Contenedor para los gráficos -->
+      <div id="charts-container"></div>
+    </main>
 
     <script type="module">
+      class ReportAdapter {
+        constructor() {
+          this.apiUrl = `${document.location.host}/api`;
+        }
 
-class ReportAdapter {
-  constructor() {
-    this.apiUrl = `${document.location.host}/api`;
-  }
+        async getData(startDate, endDate, daysDifference) {
+          const response = await fetch(
+            `http://${this.apiUrl}/reportes/1?startDate=${startDate}&endDate=${endDate}&daysDifference=${daysDifference}`,
+          );
 
-  async getData(startDate, endDate, daysDifference) {
-    const response = await fetch(
-      `http://${this.apiUrl}/reportes/1?startDate=${startDate}&endDate=${endDate}&daysDifference=${daysDifference}`
-    );
+          const { rangedAvg, generalAvg, message } = await response.json(); // Solo trabajamos con rangedAvg
 
-    const { rangedAvg, generalAvg } = await response.json(); // Solo trabajamos con rangedAvg
+          if (response.status >= 400) throw Error(message);
 
-    if (response.status >= 400) throw Error("Error en la respuesta del servidor");
+          const labels = rangedAvg.map((item) => item.dateRange);
+          const cohAvgData = rangedAvg.map((item) => item.cohAvg);
+          const fuelUsedAvgData = rangedAvg.map((item) => item.fuelUsedAvg);
+          const odometerAvgData = rangedAvg.map((item) => item.odometerAvg);
+          const idleHoursAverageData = rangedAvg.map(
+            (item) => item.idleHoursAverage,
+          );
+          const fuelRemainingAverageData = rangedAvg.map(
+            (item) => item.fuelRemainingAverage,
+          );
+          const defRemainingAverageData = rangedAvg.map(
+            (item) => item.defRemainingAverage,
+          );
 
-    const labels = rangedAvg.map((item) => item.dateRange);
-    const cohAvgData = rangedAvg.map((item) => item.cohAvg);
-    const fuelUsedAvgData = rangedAvg.map((item) => item.fuelUsedAvg);
-    const odometerAvgData = rangedAvg.map((item) => item.odometerAvg);
-    const idleHoursAverageData = rangedAvg.map((item) => item.idleHoursAverage);
-    const fuelRemainingAverageData = rangedAvg.map(
-      (item) => item.fuelRemainingAverage
-    );
-    const defRemainingAverageData = rangedAvg.map(
-      (item) => item.defRemainingAverage
-    );
+          return {
+            generalAvg,
+            charts: [
+              {
+                chartId: "cohAvgChart",
+                title: "Horas operativas acumuladas",
+                data: {
+                  labels,
+                  datasets: [
+                    {
+                      label: "Horas operativas acumuladas",
+                      data: cohAvgData,
+                      borderColor: "rgba(255, 99, 132, 1)",
+                      backgroundColor: "rgba(255, 99, 132, 0.2)",
+                      fill: true,
+                    },
+                  ],
+                },
+              },
+              {
+                chartId: "fuelUsedChart",
+                title: "Combustible usado",
+                data: {
+                  labels,
+                  datasets: [
+                    {
+                      label: "Combustible usado",
+                      data: fuelUsedAvgData,
+                      borderColor: "rgba(54, 162, 235, 1)",
+                      backgroundColor: "rgba(54, 162, 235, 0.2)",
+                      fill: true,
+                    },
+                  ],
+                },
+              },
+              {
+                chartId: "odometerChart",
+                title: "Odómetro",
+                data: {
+                  labels,
+                  datasets: [
+                    {
+                      label: "Odómetro",
+                      data: odometerAvgData,
+                      borderColor: "rgba(75, 192, 192, 1)",
+                      backgroundColor: "rgba(75, 192, 192, 0.2)",
+                      fill: true,
+                    },
+                  ],
+                },
+              },
+              {
+                chartId: "idleHoursChart",
+                title: "Horas inactivas acumuladas",
+                data: {
+                  labels,
+                  datasets: [
+                    {
+                      label: "Horas inactivas acumuladas",
+                      data: idleHoursAverageData,
+                      borderColor: "rgba(153, 102, 255, 1)",
+                      backgroundColor: "rgba(153, 102, 255, 0.2)",
+                      fill: true,
+                    },
+                  ],
+                },
+              },
+              {
+                chartId: "fuelRemainingChart",
+                title: "Combustible restante",
+                data: {
+                  labels,
+                  datasets: [
+                    {
+                      label: "Combustible restante",
+                      data: fuelRemainingAverageData,
+                      borderColor: "rgba(255, 159, 64, 1)",
+                      backgroundColor: "rgba(255, 159, 64, 0.2)",
+                      fill: true,
+                    },
+                  ],
+                },
+              },
+              {
+                chartId: "defRemainingChart",
+                title: "DEF Restante",
+                data: {
+                  labels,
+                  datasets: [
+                    {
+                      label: "DEF Restante",
+                      data: defRemainingAverageData,
+                      borderColor: "rgba(255, 205, 86, 1)",
+                      backgroundColor: "rgba(255, 205, 86, 0.2)",
+                      fill: true,
+                    },
+                  ],
+                },
+              },
+            ],
+          };
+        }
+      }
 
-    return{
-      generalAvg,
-      charts: [
-      {
-        chartId: "cohAvgChart",
-        title: "Horas operativas acumuladas",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "Horas operativas acumuladas",
-              data: cohAvgData,
-              borderColor: "rgba(255, 99, 132, 1)",
-              backgroundColor: "rgba(255, 99, 132, 0.2)",
-              fill: true,
-            },
-          ],
-        },
-      },
-      {
-        chartId: "fuelUsedChart",
-        title: "Combustible usado",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "Combustible usado",
-              data: fuelUsedAvgData,
-              borderColor: "rgba(54, 162, 235, 1)",
-              backgroundColor: "rgba(54, 162, 235, 0.2)",
-              fill: true,
-            },
-          ],
-        },
-      },
-      {
-        chartId: "odometerChart",
-        title: "Odómetro",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "Odómetro",
-              data: odometerAvgData,
-              borderColor: "rgba(75, 192, 192, 1)",
-              backgroundColor: "rgba(75, 192, 192, 0.2)",
-              fill: true,
-            },
-          ],
-        },
-      },
-      {
-        chartId: "idleHoursChart",
-        title: "Horas inactivas acumuladas",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "Horas inactivas acumuladas",
-              data: idleHoursAverageData,
-              borderColor: "rgba(153, 102, 255, 1)",
-              backgroundColor: "rgba(153, 102, 255, 0.2)",
-              fill: true,
-            },
-          ],
-        },
-      },
-      {
-        chartId: "fuelRemainingChart",
-        title: "Combustible restante",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "Combustible restante",
-              data: fuelRemainingAverageData,
-              borderColor: "rgba(255, 159, 64, 1)",
-              backgroundColor: "rgba(255, 159, 64, 0.2)",
-              fill: true,
-            },
-          ],
-        },
-      },
-      {
-        chartId: "defRemainingChart",
-        title: "DEF Restante",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "DEF Restante",
-              data: defRemainingAverageData,
-              borderColor: "rgba(255, 205, 86, 1)",
-              backgroundColor: "rgba(255, 205, 86, 0.2)",
-              fill: true,
-            },
-          ],
-        },
-      },
-    ]} 
-  }
-}
-      
+      function translateKey(key) {
+        const translate = {
+          coh: "Horas operativas acumuladas",
+          fuelUsed: "Combustible usado",
+          distance: "Valor odómetro",
+          cih: "Horas inactivas acumuladas",
+          fuelRemaining: "Combustible resntante",
+          defRemaining: "DEF restante",
+        };
 
-document.addEventListener("DOMContentLoaded", () => {
-  const startDayI = document.getElementById("start-date");
-  const endDayI = document.getElementById("end-date");
-  const daysDifferenceI = document.getElementById("days-difference");
-  const summitBtn = document.getElementById("summit-btn");
-  const table = document.getElementById("general-avg");
-  const alert = document.getElementById("alert");
-  const reportAdapter = new ReportAdapter();
+        return translate[key] ?? "Campo desconocido";
+      }
 
-  summitBtn.addEventListener("click", () => {
-    const start = startDayI.value.trim();
-    const end = endDayI.value.trim();
-    const days = daysDifferenceI.value.trim();
+      document.addEventListener("DOMContentLoaded", () => {
+        const startDayI = document.getElementById("start-date");
+        const endDayI = document.getElementById("end-date");
+        const daysDifferenceI = document.getElementById("days-difference");
+        const summitBtn = document.getElementById("summit-btn");
+        const table = document.getElementById("general-avg");
+        const alert = document.getElementById("alert");
+        const reportAdapter = new ReportAdapter();
 
-    reportAdapter
-      .getData(start, end, Number(days))
-      .then((chartsData) => {
-        const container = document.getElementById("charts-container");
+        summitBtn.addEventListener("click", () => {
+          const start = startDayI.value.trim();
+          const end = endDayI.value.trim();
+          const days = daysDifferenceI.value.trim();
 
-        // Limpiar gráficos anteriores
-        container.innerHTML = "";
-        
-        // Crear un encabezado y agregarlo al contenedor
-        const header = document.createElement("h1");
-        header.textContent = "Promedios por marca de tiempo"; // Establecer el texto del encabezado
-        container.appendChild(header);
+          reportAdapter
+            .getData(start, end, Number(days))
+            .then((chartsData) => {
+              const container = document.getElementById("charts-container");
 
-        const {charts, generalAvg} = chartsData;
+              // Limpiar gráficos anteriores
+              container.innerHTML = "";
 
-        table.innerHTML = "";
-        table.className = "table table-striped";
+              // Crear un encabezado y agregarlo al contenedor
+              const header = document.createElement("h1");
+              header.textContent = "Promedios por marca de tiempo"; // Establecer el texto del encabezado
+              container.appendChild(header);
 
-        // Crear encabezado
-        const thead = document.createElement("thead");
-        thead.innerHTML = `
+              const { charts, generalAvg } = chartsData;
+
+              table.innerHTML = "";
+              table.className = "table table-striped";
+
+              // Crear encabezado
+              const thead = document.createElement("thead");
+              thead.innerHTML = `
           <tr>
             <th>Concepto</th>
             <th>Promedio General</th>
           </tr>`;
-        table.appendChild(thead);
+              table.appendChild(thead);
 
-        // Crear cuerpo de la tabla
-        const tbody = document.createElement("tbody");
-        Object.entries(generalAvg).forEach(([key, value]) => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${key}</td>
+              // Crear cuerpo de la tabla
+              const tbody = document.createElement("tbody");
+              Object.entries(generalAvg).forEach(([key, value]) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+            <td>${translateKey(key)}</td>
             <td>${value.toFixed(2)}</td>`;
-          tbody.appendChild(row);
-        });
-        table.appendChild(tbody);
+                tbody.appendChild(row);
+              });
+              table.appendChild(tbody);
 
+              charts.forEach(({ chartId, title, data }) => {
+                // Crear un nuevo canvas
+                const canvas = document.createElement("canvas");
+                canvas.id = chartId;
+                canvas.style.marginBottom = "20px";
+                container.appendChild(canvas);
 
-        charts.forEach(({ chartId, title, data }) => {
-          // Crear un nuevo canvas
-          const canvas = document.createElement("canvas");
-          canvas.id = chartId;
-          canvas.style.marginBottom = "20px";
-          container.appendChild(canvas);
-
-          // Crear el gráfico
-          const ctx = canvas.getContext("2d");
-          new Chart(ctx, {
-            type: "line",
-            data: data,
-            options: {
-              responsive: true,
-              plugins: {
-                legend: { position: "top" },
-                title: {
-                  display: true,
-                  text: title,
-                },
-              },
-              scales: {
-                x: {
-                  ticks: {
-                    callback: (value) => data.labels[value],
-                    maxRotation: 90,
-                    minRotation: 90,
+                // Crear el gráfico
+                const ctx = canvas.getContext("2d");
+                new Chart(ctx, {
+                  type: "line",
+                  data: data,
+                  options: {
+                    responsive: true,
+                    plugins: {
+                      legend: { position: "top" },
+                      title: {
+                        display: true,
+                        text: title,
+                      },
+                    },
+                    scales: {
+                      x: {
+                        ticks: {
+                          callback: (value) => data.labels[value],
+                          maxRotation: 90,
+                          minRotation: 90,
+                        },
+                      },
+                    },
                   },
-                },
-              },
-            },
-          });
+                });
+              });
+              alert.classList.add("d-none");
+            })
+            .catch((e) => {
+              console.error(e);
+              alert.innerHTML = e.message;
+              alert.classList.remove("d-none");
+            });
         });
-        alert.classList.add("d-none");
-      })
-      .catch((e) => {
-        console.error(e);
-        alert.innerHTML = e.message;
-        alert.classList.remove("d-none");
       });
-  });
-});
     </script>
-    </main>
-    <script src="/js/equipos.js"></script>
   </body>
 </html>

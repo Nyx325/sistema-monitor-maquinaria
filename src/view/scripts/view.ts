@@ -8,8 +8,11 @@ import LabeledInput from "../components/labeledInput.js";
 import Modal from "../components/modal.js";
 import Pager from "../components/pager.js";
 import { Table } from "../components/table.js";
+import TableView from "../components/tableView.js";
 
-export abstract class View<T extends Record<string, unknown>> {
+export abstract class View<T extends Record<string, unknown>>
+  implements TableView
+{
   protected form: {
     alert: Alert;
     legend: HTMLLegendElement;
