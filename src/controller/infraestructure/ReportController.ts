@@ -3,6 +3,11 @@ import UserError from "../../model/entities/UserError.js";
 import { PrismaClient } from "@prisma/client";
 
 type AvgResult = { avg: number | null };
+type ReportData = {
+  startDate: string;
+  endDate: string;
+  daysDifference: number;
+};
 
 export class ReportController {
   protected prisma: PrismaClient;
@@ -57,18 +62,36 @@ export class ReportController {
   private async performReport1(req: Request, res: Response) {
     const { startDate, endDate, daysDifference } = req.query;
 
-    // Validar si las fechas y la diferencia son válidas
-    if (!startDate || !endDate || !daysDifference) {
-      throw new UserError("Se requieren startDate, endDate y daysDifference");
+    const msg = [];
+
+    const params: Partial<ReportData> = {
+      startDate: startDate !== undefined ? `${startDate}` : undefined,
+      endDate: endDate !== undefined ? `${endDate}` : undefined,
+      daysDifference:
+        daysDifference !== undefined ? Number(daysDifference) : undefined,
+    };
+
+    const keys = Object.keys(params) as Array<keyof ReportData>;
+    for (const key of keys) {
+      if (params[key] === undefined) {
+        msg.push(`${key} no fue definido`);
+        continue;
+      }
+
+      if (typeof params[key] === "string" && isNaN(Date.parse(params[key]))) {
+        msg.push("formato de fecha y hora inválidos");
+        continue;
+      }
+
+      if (typeof params[key] === "number" && params[key] <= 0)
+        msg.push("la diferencia de dias entre muestras debe ser mayor a 0");
     }
+
+    if (msg.length !== 0) throw new UserError(msg.join(", "));
 
     const start = new Date(startDate as string);
     const end = new Date(endDate as string);
     const difference = parseInt(daysDifference as string, 10);
-
-    if (isNaN(difference) || isNaN(start.getTime()) || isNaN(end.getTime())) {
-      throw new UserError("Formato de fecha o diferencia de días inválido");
-    }
 
     // Generar los intervalos de fechas
     const intervals: { start: Date; end: Date }[] = [];
