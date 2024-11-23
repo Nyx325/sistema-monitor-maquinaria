@@ -12,6 +12,7 @@ de entorno obligatorias y opcionales
 ```env
 #Obligatorias
 DATABASE_URL="mysql://USER:PWD@HOST:DBMS_PORT/DB_NAME"
+BACKUP_DIRECTORY="./backups"
 
 # Opcionales
 PORT=63000
