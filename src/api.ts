@@ -16,6 +16,7 @@ import faultCodeController from "./routes/FaultCodeRoutes.js";
 import usersController from "./routes/UserRoutes.js";
 import authRouter from "./routes/auth.js";
 import reportController from "./routes/ReportsRouter.js";
+import backupRoutes from "./routes/BackupRoutes.js";
 
 const apiRouter = Router();
 
@@ -36,5 +37,6 @@ apiRouter.use("/codigosError", faultCodeController);
 apiRouter.use("/usuarios", usersController);
 apiRouter.use("/auth", authRouter);
 apiRouter.use("/reportes", reportController);
+apiRouter.use("/backups", backupRoutes);
 
 export default apiRouter;

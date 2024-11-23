@@ -94,11 +94,13 @@ export class ReportController {
         );
     }
 
-    if (msg.length !== 0) throw new UserError(msg.join(", "));
-
     const start = new Date(startDate as string);
     const end = new Date(endDate as string);
     const difference = parseInt(daysDifference as string, 10);
+
+    if (start >= end) msg.push("La fecha inicial debe ser menor a la final");
+
+    if (msg.length !== 0) throw new UserError(msg.join(", "));
 
     // Generar los intervalos de fechas
     const intervals: { start: Date; end: Date }[] = [];
@@ -375,5 +377,66 @@ export class ReportController {
 
     // Respuesta con la información de paginación
     res.status(200).json(result);
+  }
+
+  async performReport4(req: Request, res: Response) {
+    const { startDate, endDate, serialNumber, page } = req.query;
+
+    const msg = [];
+    if (isNaN(Date.parse(`${startDate}`)) || isNaN(Date.parse(`${endDate}`)))
+      msg.push("formato de fecha y hora inválidos");
+
+    if (serialNumber === undefined) msg.push("numero de serie no definido");
+
+    if (page === undefined || isNaN(Number(page)) || Number(page) <= 0)
+      msg.push("el número de página debe ser entero mayor a 1");
+
+    if (msg.length !== 0) {
+      res.status(400).json({ message: msg.join(", ") });
+      return;
+    }
+
+    const rows = await this.prisma.$queryRaw`
+      WITH ErrorCount AS (
+          SELECT
+              s.serial_number,
+              COUNT(fc.folio) AS num_errors
+          FROM
+              FaultCode fc
+          JOIN
+              ApiSnapshot s ON fc.snapshot_id = s.snapshot_id
+          WHERE
+              fc.date_time BETWEEN ${startDate} AND ${endDate}
+          GROUP BY
+              s.serial_number
+      ),
+      OperatingHours AS (
+          SELECT
+              s.serial_number,
+              MAX(coh.hour) - MIN(coh.hour) AS hours_worked
+          FROM
+              CumulativeOperatingHours coh
+          JOIN
+              ApiSnapshot s ON coh.snapshot_id = s.snapshot_id
+          WHERE
+              coh.date_time BETWEEN ${startDate} AND ${endDate}
+          GROUP BY
+              s.serial_number
+      )
+      SELECT
+          e.serial_number,
+          e.num_errors,
+          ROUND(o.hours_worked, 4),
+          CASE
+              WHEN o.hours_worked = 0 THEN 0
+              ELSE ROUND(e.num_errors / o.hours_worked, 4)
+          END AS error_rate
+      FROM
+          ErrorCount e
+      JOIN
+          OperatingHours o ON e.serial_number = o.serial_number;
+      WHERE 
+          e.serial_number LIKE ${`%${serialNumber}%`}
+      `;
   }
 }

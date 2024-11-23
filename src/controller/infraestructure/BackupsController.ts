@@ -3,6 +3,7 @@ import * as path from "path";
 import { exec } from "child_process";
 import Config from "../../config.js";
 import UserError from "../../model/entities/UserError.js";
+import { Request, Response } from "express";
 
 export default class DatabaseBackup {
   private config: Config;
@@ -10,102 +11,160 @@ export default class DatabaseBackup {
   private backupDirectory: string;
 
   constructor() {
-    this.config = Config.instance; // Obtener la instancia única de Config
+    this.config = Config.instance;
 
-    // Obtener los valores de la configuración de la base de datos desde Config
     this.mysqlBinPath = this.config.mysqlBinPath || "";
     this.backupDirectory = this.config.backupDirectory;
 
-    // Crear el directorio de respaldos si no existe
     if (!fs.existsSync(this.backupDirectory)) {
       fs.mkdirSync(this.backupDirectory);
     }
   }
 
-  // Método para generar un nombre de archivo único basado en la fecha
+  protected handleError(e: unknown, res: Response) {
+    if (e instanceof UserError) {
+      res.status(400).json({ message: e.message });
+    } else {
+      console.error(e);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
   private generateBackupFileName(): string {
     const date = new Date();
-    const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}_${date.getHours().toString().padStart(2, "0")}${date.getMinutes().toString().padStart(2, "0")}`;
+
+    // Formatear fecha y hora
+    const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
+    const timeString = `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}:${date.getSeconds().toString().padStart(2, "0")}`;
+
     return path.join(
       this.backupDirectory,
-      `backup_${this.config.database}_${dateString}.sql`,
+      `backup_${this.config.database}_${dateString}_${timeString}.sql`,
     );
   }
 
-  // Método para realizar un volcado de la base de datos (crear un respaldo)
-  public createBackup(): Promise<void> {
-    const backupPath = this.generateBackupFileName();
-    const mysqldumpCommand = `${this.mysqlBinPath ? this.mysqlBinPath + "/mysqldump" : "mysqldump"} --user=${this.config.user} --password=${this.config.password} --host=${this.config.host} --port=${this.config.port} --databases ${this.config.database} > ${backupPath}`;
+  public createBackup(_req: Request, res: Response): void {
+    try {
+      const backupPath = this.generateBackupFileName();
+      const mysqldumpCommand = `${this.mysqlBinPath ? this.mysqlBinPath + "/mysqldump" : "mysqldump"} --user=${this.config.user} --password=${this.config.password} --host=${this.config.host} --port=${this.config.port} --databases ${this.config.database} > ${backupPath}`;
 
-    return new Promise((resolve, reject) => {
-      exec(mysqldumpCommand, (error, stdout, stderr) => {
+      console.log(mysqldumpCommand);
+
+      exec(mysqldumpCommand, (error, _stdout, stderr) => {
         if (error) {
-          reject(new Error(`Error ejecutando mysqldump: ${error.message}`)); // Error del sistema
+          this.handleError(
+            new Error(`Error ejecutando mysqldump: ${error.message}`),
+            res,
+          );
           return;
         }
+
         if (stderr) {
-          reject(new Error(`Error: ${stderr}`)); // Error del sistema
-          return;
+          // Verifica si el mensaje de stderr es una advertencia no crítica
+          if (stderr.includes("Deprecated program name")) {
+            console.warn(`WARNING: ${stderr}`);
+          } else {
+            this.handleError(new Error(`Error: ${stderr}`), res);
+            return;
+          }
         }
+
+        res.status(200).json({ message: `Respaldo creado en: ${backupPath}` });
         console.log(`Respaldo creado en: ${backupPath}`);
-        resolve();
       });
-    });
-  }
-
-  // Método para restaurar la base de datos desde un respaldo
-  public restoreBackup(backupFileName: string): Promise<void> {
-    const backupFilePath = path.join(this.backupDirectory, backupFileName);
-
-    // Verificar si el archivo de respaldo existe
-    if (!fs.existsSync(backupFilePath)) {
-      throw new UserError(
-        `El archivo de respaldo no existe: ${backupFilePath}`,
-      ); // Error del usuario
+    } catch (e) {
+      this.handleError(e, res);
     }
-
-    const restoreCommand = `${this.mysqlBinPath ? this.mysqlBinPath + "/mysql" : "mysql"} --user=${this.config.user} --password=${this.config.password} --host=${this.config.host} --port=${this.config.port} ${this.config.database} < ${backupFilePath}`;
-
-    return new Promise((resolve, reject) => {
-      exec(restoreCommand, (error, stdout, stderr) => {
-        if (error) {
-          reject(
-            new Error(`Error restaurando la base de datos: ${error.message}`),
-          ); // Error del sistema
-          return;
-        }
-        if (stderr) {
-          reject(new Error(`Error: ${stderr}`)); // Error del sistema
-          return;
-        }
-        console.log(`Restauración completada desde: ${backupFilePath}`);
-        resolve();
-      });
-    });
   }
 
-  // Método para obtener los archivos de respaldo con paginación
-  public getBackupFiles(page: number): {
-    page: number;
-    totalPages: number;
-    backups: string[];
-  } {
-    const files = fs.readdirSync(this.backupDirectory);
+  public restoreBackup(req: Request, res: Response): void {
+    try {
+      const { backup_name } = req.body;
 
-    // Filtrar solo los archivos .sql
-    const backupFiles = files.filter((file) => file.endsWith(".sql"));
+      if (!backup_name) {
+        this.handleError(
+          new UserError("No se definió el nombre del respaldo a utilizar"),
+          res,
+        );
+        return;
+      }
 
-    // Obtener el valor de limit desde Config (variables de entorno)
-    const limit = this.config.pageSize; // Usar pageSize como el límite de la página
+      const backupFilePath = path.join(this.backupDirectory, backup_name);
 
-    // Calcular total de páginas
-    const totalFiles = backupFiles.length;
-    const totalPages = Math.ceil(totalFiles / limit); // Redondear hacia arriba para obtener el total de páginas
+      if (!fs.existsSync(backupFilePath)) {
+        this.handleError(
+          new UserError(`El archivo de respaldo no existe: ${backupFilePath}`),
+          res,
+        );
+        return;
+      }
 
-    // Aplicar paginación
-    const offset = (page - 1) * limit;
-    const backups = backupFiles.slice(offset, offset + limit);
+      const restoreCommand = `${this.mysqlBinPath ? this.mysqlBinPath + "/mysql" : "mysql"} --user=${this.config.user} --password=${this.config.password} --host=${this.config.host} --port=${this.config.port} ${this.config.database} < ${backupFilePath}`;
 
-    return { page, totalPages, backups };
+      exec(restoreCommand, (error, _stdout, stderr) => {
+        if (error) {
+          this.handleError(
+            new Error(`Error restaurando la base de datos: ${error.message}`),
+            res,
+          );
+          return;
+        }
+
+        if (stderr) {
+          // Verifica si el mensaje de stderr es una advertencia no crítica
+          if (stderr.includes("Deprecated program name")) {
+            console.warn(`WARNING: ${stderr}`);
+          } else {
+            this.handleError(new Error(`Error: ${stderr}`), res);
+            return;
+          }
+        }
+
+        res.status(200).json({
+          message: `Restauración completada desde: ${backupFilePath}`,
+        });
+        console.log(`Restauración completada desde: ${backupFilePath}`);
+      });
+    } catch (e) {
+      this.handleError(e, res);
+    }
+  }
+
+  public getBackupFiles(req: Request, res: Response): void {
+    try {
+      const { pageNumber = "1" } = req.params;
+      const page = parseInt(pageNumber, 10);
+
+      if (!pageNumber || isNaN(page) || page <= 0) {
+        this.handleError(
+          new UserError("El número de página debe ser mayor o igual a 1"),
+          res,
+        );
+        return;
+      }
+
+      if (!fs.existsSync(this.backupDirectory)) {
+        fs.mkdirSync(this.backupDirectory, { recursive: true });
+        console.log(`Directorio de respaldos creado: ${this.backupDirectory}`);
+      }
+
+      // Leer los archivos del directorio de respaldos
+      const files = fs.readdirSync(this.backupDirectory);
+      const backupFiles = files.filter((file) => file.endsWith(".sql"));
+
+      const limit = this.config.pageSize;
+      const totalFiles = backupFiles.length;
+      const totalPages = Math.ceil(totalFiles / limit);
+      const offset = (page - 1) * limit;
+      const backups = backupFiles.slice(offset, offset + limit);
+
+      res.status(200).json({
+        page,
+        totalPages: totalPages === 0 ? 1 : totalPages,
+        backups: backups.reverse(),
+      });
+    } catch (e) {
+      this.handleError(e, res);
+    }
   }
 }
