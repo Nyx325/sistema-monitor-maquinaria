@@ -17,6 +17,7 @@ DATABASE_URL="mysql://USER:PWD@HOST:DBMS_PORT/DB_NAME"
 PORT=63000
 POOL_SIZE=5
 PAGE_SIZE=10
+MYSQL_BINS_PATH="C:\\xampp\\mysql\\bin"
 ```
 
 Una vez configurado esto puedes ejecutar la
