@@ -32,16 +32,17 @@ export default class DatabaseBackup {
 
   private generateBackupFileName(): string {
     const date = new Date();
-
+  
     // Formatear fecha y hora
     const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-    const timeString = `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}:${date.getSeconds().toString().padStart(2, "0")}`;
-
+    const timeString = `${date.getHours().toString().padStart(2, "0")}-${date.getMinutes().toString().padStart(2, "0")}-${date.getSeconds().toString().padStart(2, "0")}`; // Usar "-" en lugar de ":"
+  
     return path.join(
       this.backupDirectory,
       `backup_${this.config.database}_${dateString}_${timeString}.sql`,
     );
   }
+  
 
   public createBackup(_req: Request, res: Response): void {
     try {
