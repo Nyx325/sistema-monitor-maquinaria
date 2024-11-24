@@ -29,11 +29,12 @@
   </header>
   <body>
     <dialog id="modal">
-      <legend>¿Seguro?</legend>
-      <button type="button">Si</button>
-      <button type="button">No</button>
+      <legend id="modal-legend">¿Seguro?</legend>
+      <button id="yes-btn" type="button">Si</button>
+      <button id="no-btn" type="button">No</button>
     </dialog>
     <main>
+      <div id="alert" class="alert alert-danger d-none"></div>
       <div>
         <button id="new" type="button">Nuevo</button>
         <button id="restore" type="button">Restaurar</button>
