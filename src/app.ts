@@ -102,4 +102,9 @@ router.get("/reporte3", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/views/report3.html"));
 });
 
+router.get("/backups", (_req, res) => {
+  res.sendFile(path.join(__dirname, "../public/views/backups.html"));
+});
+
+
 export default router;
