@@ -132,8 +132,9 @@ export default class DatabaseBackup {
 
   public getBackupFiles(req: Request, res: Response): void {
     try {
-      const { pageNumber = "1" } = req.params;
-      const page = parseInt(pageNumber, 10);
+      const { pageNumber = "1" } = req.query;
+      console.log(pageNumber);
+      const page = parseInt(`${pageNumber}`, 10);
 
       if (!pageNumber || isNaN(page) || page <= 0) {
         this.handleError(

@@ -16,7 +16,7 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="/css/styleEq.css" />
-    <script type="module" src="/scripts/cpt.js"></script>
+    <script type="module" src="/scripts/backups.js"></script>
     <title>Respaldo de la base de datos</title>
     <link href="css/style.css" rel="stylesheet" />
   </head>
@@ -28,15 +28,11 @@
     </dialog>
     <main>
       <div>
-        <button type="button">Nuevo</button>
-        <button type="button">Restaurar</button>
+        <button id="new" type="button">Nuevo</button>
+        <button id="restore" type="button">Restaurar</button>
       </div>
-      <table id="backups-table">
-        <thead>
-          <th>Respaldos existentes</th>
-        </thead>
-        <tbody id="backups"></tbody>
-      </table>
+      <table id="table"></table>
+      <nav id="pager" class="pager"></nav>
     </main>
   </body>
 </html>
