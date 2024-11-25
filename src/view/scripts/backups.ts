@@ -125,6 +125,7 @@ class BackupsView implements TableView {
         this.alert.container.classList.add("alert-danger");
         this.alert.setMessage(err.message);
         this.alert.setVisible(true);
+        return;
       }
 
       this.alert.setVisible(true);
