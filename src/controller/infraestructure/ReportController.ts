@@ -59,7 +59,7 @@ export class ReportController {
   }
 
   public reporte5(req: Request, res: Response) {
-    return this.execute(req, res, this.performReport1);
+    return this.execute(req, res, this.performReport5.bind(this));
   }
 
   private async performReport1(req: Request, res: Response) {
@@ -380,7 +380,7 @@ export class ReportController {
   }
 
   async performReport4(req: Request, res: Response) {
-    const { startDate, endDate, serialNumber, page = "1" } = req.query;
+    const { startDate, endDate, serialNumber = "", page = "1" } = req.query;
 
     const msg = [];
     if (isNaN(Date.parse(`${startDate}`)) || isNaN(Date.parse(`${endDate}`)))
@@ -399,92 +399,108 @@ export class ReportController {
     const currentPage = Number(page);
     const size = this.cfg.pageSize;
 
-    const rows = await this.prisma.$queryRaw`
-  WITH ErrorCount AS (
-      SELECT
-          s.serial_number,
-          COUNT(fc.folio) AS num_errors
-      FROM
-          FaultCode fc
-      JOIN
-          ApiSnapshot s ON fc.snapshot_id = s.snapshot_id
-      WHERE
-          fc.date_time BETWEEN ${startDate} AND ${endDate}
-      GROUP BY
-          s.serial_number
-  ),
-  OperatingHours AS (
-      SELECT
-          s.serial_number,
-          MAX(coh.hour) - MIN(coh.hour) AS hours_worked
-      FROM
-          CumulativeOperatingHours coh
-      JOIN
-          ApiSnapshot s ON coh.snapshot_id = s.snapshot_id
-      WHERE
-          coh.date_time BETWEEN ${startDate} AND ${endDate}
-      GROUP BY
-          s.serial_number
-  )
-  SELECT
-      e.serial_number,
-      e.num_errors,
-      ROUND(o.hours_worked, 4),
-      CASE
-          WHEN o.hours_worked = 0 THEN 0
-          ELSE ROUND(e.num_errors / o.hours_worked, 4)
-      END AS error_rate
-  FROM
-      ErrorCount e
-  JOIN
-      OperatingHours o ON e.serial_number = o.serial_number
-  WHERE 
-      e.serial_number LIKE ${`%${serialNumber}%`}
-`;
+    const rows = await this.prisma.$queryRaw<
+      {
+        serial_number: string;
+        num_errors: number;
+        hours_worked: number;
+        error_rate: number;
+      }[]
+    >`
+    WITH ErrorCount AS (
+        SELECT
+            s.serial_number,
+            COUNT(fc.folio) AS num_errors
+        FROM
+            FaultCode fc
+        JOIN
+            ApiSnapshot s ON fc.snapshot_id = s.snapshot_id
+        WHERE
+            fc.date_time BETWEEN ${startDate} AND ${endDate}
+        GROUP BY
+            s.serial_number
+    ),
+    OperatingHours AS (
+        SELECT
+            s.serial_number,
+            MAX(coh.hour) - MIN(coh.hour) AS hours_worked
+        FROM
+            CumulativeOperatingHours coh
+        JOIN
+            ApiSnapshot s ON coh.snapshot_id = s.snapshot_id
+        WHERE
+            coh.date_time BETWEEN ${startDate} AND ${endDate}
+        GROUP BY
+            s.serial_number
+    )
+    SELECT
+        e.serial_number,
+        e.num_errors,
+        ROUND(o.hours_worked, 4) as hours_worked,
+        CASE
+            WHEN o.hours_worked = 0 THEN 0
+            ELSE ROUND(e.num_errors / o.hours_worked, 4)
+        END AS error_rate
+    FROM
+        ErrorCount e
+    JOIN
+        OperatingHours o ON e.serial_number = o.serial_number
+    WHERE 
+        e.serial_number LIKE ${`%${serialNumber}%`}
+  `;
 
     const totalRows = await this.prisma.$queryRaw<{ total: bigint }[]>`
-  WITH ErrorCount AS (
-      SELECT
-          s.serial_number,
-          COUNT(fc.folio) AS num_errors
-      FROM
-          FaultCode fc
-      JOIN
-          ApiSnapshot s ON fc.snapshot_id = s.snapshot_id
-      WHERE
-          fc.date_time BETWEEN ${startDate} AND ${endDate}
-      GROUP BY
-          s.serial_number
-  ),
-  OperatingHours AS (
-      SELECT
-          s.serial_number,
-          MAX(coh.hour) - MIN(coh.hour) AS hours_worked
-      FROM
-          CumulativeOperatingHours coh
-      JOIN
-          ApiSnapshot s ON coh.snapshot_id = s.snapshot_id
-      WHERE
-          coh.date_time BETWEEN ${startDate} AND ${endDate}
-      GROUP BY
-          s.serial_number
-  )
-  SELECT
-      COUNT(*) AS total
-  FROM
-      ErrorCount e
-  JOIN
-      OperatingHours o ON e.serial_number = o.serial_number
-  WHERE
-      e.serial_number LIKE ${`%${serialNumber}%`}
-`;
+    WITH ErrorCount AS (
+        SELECT
+            s.serial_number,
+            COUNT(fc.folio) AS num_errors
+        FROM
+            FaultCode fc
+        JOIN
+            ApiSnapshot s ON fc.snapshot_id = s.snapshot_id
+        WHERE
+            fc.date_time BETWEEN ${startDate} AND ${endDate}
+        GROUP BY
+            s.serial_number
+    ),
+    OperatingHours AS (
+        SELECT
+            s.serial_number,
+            MAX(coh.hour) - MIN(coh.hour) AS hours_worked
+        FROM
+            CumulativeOperatingHours coh
+        JOIN
+            ApiSnapshot s ON coh.snapshot_id = s.snapshot_id
+        WHERE
+            coh.date_time BETWEEN ${startDate} AND ${endDate}
+        GROUP BY
+            s.serial_number
+    )
+    SELECT
+        COUNT(*) AS total
+    FROM
+        ErrorCount e
+    JOIN
+        OperatingHours o ON e.serial_number = o.serial_number
+    WHERE
+        e.serial_number LIKE ${`%${serialNumber}%`}
+  `;
 
-    // Convertir BigInt a number (puede causar pérdida de precisión si el número es muy grande)
-    const total = Number(totalRows[0]?.total || 0);
+    // Convertir BigInt a Number
+    const total = totalRows[0]?.total ? Number(totalRows[0].total) : 0;
+
+    // Si algún valor de `rows` es BigInt, convertir a Number
+    const rowsWithConvertedBigInt = rows.map((row) => ({
+      ...row,
+      num_errors: Number(row.num_errors), // Convertir num_errors (BigInt)
+      hours_worked: Number(row.hours_worked), // Convertir hours_worked (BigInt)
+      error_rate: row.error_rate !== null ? Number(row.error_rate) : null, // Convertir error_rate si no es null
+    }));
+
     const totalPages = Math.ceil(total / size);
 
     const result: Search<unknown> = {
-      result: [rows],
+      result: rowsWithConvertedBigInt, // Usar los datos con BigInt convertidos
       totalPages,
       currentPage,
       criteria: {
@@ -495,6 +511,100 @@ export class ReportController {
     };
 
     // Respuesta con la información de paginación
+    res.status(200).json(result);
+  }
+
+  async performReport5(req: Request, res: Response) {
+    const { startDate, endDate, serialNumber = "", page = "1" } = req.query;
+
+    const msg = [];
+    if (isNaN(Date.parse(`${startDate}`)) || isNaN(Date.parse(`${endDate}`)))
+      msg.push("formato de fecha y hora inválidos");
+
+    if (serialNumber === undefined) msg.push("numero de serie no definido");
+
+    if (page === undefined || isNaN(Number(page)) || Number(page) <= 0)
+      msg.push("el número de página debe ser entero mayor a 1");
+
+    if (msg.length !== 0) {
+      res.status(400).json({ message: msg.join(", ") });
+      return;
+    }
+
+    const currentPage = Number(page);
+
+    const rows = await this.prisma.$queryRaw<
+      {
+        serial_number: string;
+        total_payload_used: number;
+        total_fuel_used: number;
+        efficiency_ratio_value: number;
+        efficiency_ratio_percentage: number;
+      }[]
+    >`
+  SELECT 
+      e.serial_number,
+      (MAX(cpt.payload) - MIN(cpt.payload)) AS total_payload_used,
+      (MAX(fu.fuel_consumed) - MIN(fu.fuel_consumed)) AS total_fuel_used,
+      CASE 
+          WHEN (MAX(fu.fuel_consumed) - MIN(fu.fuel_consumed)) > 0 THEN 
+              (MAX(cpt.payload) - MIN(cpt.payload)) / (MAX(fu.fuel_consumed) - MIN(fu.fuel_consumed))
+          ELSE 
+              NULL
+      END AS efficiency_ratio_value,
+      CASE 
+          WHEN (MAX(fu.fuel_consumed) - MIN(fu.fuel_consumed)) > 0 THEN 
+              ((MAX(cpt.payload) - MIN(cpt.payload)) / (MAX(fu.fuel_consumed) - MIN(fu.fuel_consumed))) * 100
+          ELSE 
+              NULL
+      END AS efficiency_ratio_percentage
+  FROM 
+      Equipement e
+  LEFT JOIN 
+      ApiSnapshot s ON e.serial_number = s.serial_number
+  LEFT JOIN 
+      CumulativePayloadTotals cpt ON s.snapshot_id = cpt.snapshot_id
+  LEFT JOIN 
+      FuelUsed fu ON s.snapshot_id = fu.snapshot_id
+  WHERE 
+      s.snapshot_datetime BETWEEN ${startDate} AND ${endDate}
+      AND e.serial_number LIKE ${`%${serialNumber}%`}
+      AND e.active = 1
+      AND (cpt.active = 1 OR cpt.active IS NULL)
+      AND (fu.active = 1 OR fu.active IS NULL)
+  GROUP BY 
+      e.serial_number, e.oem_name, e.model;
+`;
+
+    // Convertir los valores BigInt a String antes de enviarlos
+    const rowsWithStringBigInt = rows.map((row) => ({
+      ...row,
+      total_payload_used: row.total_payload_used
+        ? row.total_payload_used.toString()
+        : null,
+      total_fuel_used: row.total_fuel_used
+        ? row.total_fuel_used.toString()
+        : null,
+      efficiency_ratio_value: row.efficiency_ratio_value
+        ? row.efficiency_ratio_value.toString()
+        : null,
+      efficiency_ratio_percentage: row.efficiency_ratio_percentage
+        ? row.efficiency_ratio_percentage.toString()
+        : null,
+    }));
+
+    const result: Search<unknown> = {
+      result: rowsWithStringBigInt,
+      totalPages: 1,
+      currentPage,
+      criteria: {
+        serialNumber,
+        startDate,
+        endDate,
+      },
+    };
+
+    // Responder con la información procesada
     res.status(200).json(result);
   }
 }
