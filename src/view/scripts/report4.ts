@@ -85,10 +85,10 @@ class Report4View implements TableView {
     this.table.onParseData((record) => {
       return [
         record.serial_number,
-        `${record.num_errors}`,
-        `${record.hours_worked}`,
-        `${parseFloat(record.error_rate.toFixed(4))}`,
-        `${parseFloat((record.error_rate * 100).toFixed(4))}`,
+        `${record.num_errors ?? "no hay registros en estas fechas"}`,
+        `${record.hours_worked ?? "no hay registros en estas fechas"}`,
+        `${parseFloat((record.error_rate ?? 0).toFixed(4))}`,
+        `${parseFloat(((record.error_rate ?? 0) * 100).toFixed(4))}`,
       ];
     });
 
