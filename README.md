@@ -1,7 +1,9 @@
 # Sistema
 
-La documentación de los endpoints se encuentra en
-[ApiDoc](./ApiDoc.md)
+## Prerequisitos
+
+Descargar NodeJS para su equipo en la
+[pagina oficial](https://nodejs.org/en/)
 
 ## Desplegar en producción
 
@@ -29,6 +31,8 @@ npm install --omit=dev
 npm run start
 ```
 
+Se creará la base de datos automaticamente
+
 ## Desplegar para desarrollo
 
 Al igual que en [Desplegar en producción](#desplegar-en-producción)
@@ -39,3 +43,23 @@ para la ejecución del sistema debes hacer uso de
 npm install
 npm run dev
 ```
+
+## Restauración
+
+Se debe haber configurado el directorio de backups como
+`./backups` y acceder con un usuario de tipo administrador
+
+```sql
+INSERT INTO User (full_name, user_name, user_password, user_type, active, email)
+VALUES (
+    'Administrator',         -- Nombre completo
+    'admin',                 -- Nombre de usuario
+    'Adm1n$tr0ng!',          -- Contraseña medianamente segura
+    'ADMIN',                 -- Tipo de usuario
+    1,                       -- Activo (1 = activo)
+    'admin@example.com'      -- Correo electrónico
+);
+```
+
+Y acceder al menú de restauración de base de datos, donde
+debe aparecer el archivo creado anteriormente

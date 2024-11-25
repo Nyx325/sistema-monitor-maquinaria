@@ -14,9 +14,6 @@ dist/
 # Environment variables
 .env
 
-# backups directory
-backups/
-
 # Logs
 logs/
 *.log

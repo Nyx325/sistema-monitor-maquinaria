@@ -32,24 +32,21 @@ export default class DatabaseBackup {
 
   private generateBackupFileName(): string {
     const date = new Date();
-  
+
     // Formatear fecha y hora
     const dateString = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
     const timeString = `${date.getHours().toString().padStart(2, "0")}-${date.getMinutes().toString().padStart(2, "0")}-${date.getSeconds().toString().padStart(2, "0")}`; // Usar "-" en lugar de ":"
-  
+
     return path.join(
       this.backupDirectory,
       `backup_${this.config.database}_${dateString}_${timeString}.sql`,
     );
   }
-  
 
   public createBackup(_req: Request, res: Response): void {
     try {
       const backupPath = this.generateBackupFileName();
       const mysqldumpCommand = `${this.mysqlBinPath ? this.mysqlBinPath + "/mysqldump" : "mysqldump"} --user=${this.config.user} --password=${this.config.password} --host=${this.config.host} --port=${this.config.port} --databases ${this.config.database} > ${backupPath}`;
-
-      console.log(mysqldumpCommand);
 
       exec(mysqldumpCommand, (error, _stdout, stderr) => {
         if (error) {
@@ -134,7 +131,6 @@ export default class DatabaseBackup {
   public getBackupFiles(req: Request, res: Response): void {
     try {
       const { pageNumber = "1" } = req.query;
-      console.log(pageNumber);
       const page = parseInt(`${pageNumber}`, 10);
 
       if (!pageNumber || isNaN(page) || page <= 0) {

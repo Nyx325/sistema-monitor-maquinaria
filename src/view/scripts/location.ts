@@ -1,4 +1,6 @@
 import { LocationWithSnapshot } from "../../model/entities/ModelsWithSnapshot.js";
+import { Location } from "@prisma/client";
+import { Search } from "../../model/entities/Search.js";
 import Activity from "../components/activity.js";
 import LabeledInput from "../components/labeledInput.js";
 import Modal from "../components/modal.js";
@@ -104,9 +106,6 @@ class LocationView extends View<LocationWithSnapshot> {
     this.searchBtn = document.getElementById(
       "search-location",
     ) as HTMLButtonElement;
-    console.log("A");
-    this.searchBtn.innerHTML = "A";
-    console.log("B");
     this.searchModal = new Modal("search-modal");
     this.searchInput = {
       datetime: new LabeledInput({
@@ -151,12 +150,13 @@ class LocationView extends View<LocationWithSnapshot> {
       acept: document.getElementById("acept-btns") as HTMLButtonElement,
       cancel: document.getElementById("cancel-btns") as HTMLButtonElement,
     };
+
+    this.initSearchModal();
   }
 
   protected initialize(): void {
     super.initialize();
     this.initTable().then();
-    this.initSearchModal();
     this.pager.render();
   }
 
@@ -283,6 +283,52 @@ class LocationView extends View<LocationWithSnapshot> {
   protected initSearchModal() {
     this.searchBtn.addEventListener("click", () => {
       this.searchModal.show(true);
+    });
+
+    this.search.cancel.addEventListener("click", () => {
+      this.searchModal.show(false);
+
+      Object.values(this.searchInput).forEach((input) => {
+        input.clear();
+      });
+    });
+
+    this.search.acept.addEventListener("click", () => {
+      const {
+        longitude,
+        latitude,
+        altitude,
+        altitudeUnits,
+        chinaId,
+        datetime,
+      } = this.searchInput;
+
+      console.log(datetime.getValue());
+      console.log(datetime.getValue() === "");
+      console.log(new Date(datetime.getValue()));
+
+      // Crear el objeto de criterios
+      const criteria: Partial<Location> = {
+        location_id: 0, // Asignar valor predeterminado si no es modificable desde UI
+        snapshot_id: 0, // Asignar valor predeterminado si no es modificable desde UI
+        active: this.activitySearch.getSelection() as boolean, // Asegurar conversión a booleano si es necesario
+        altitude: Number(altitude.getValue()) || 0, // Convertir a número y manejar valores no válidos
+        latitude: Number(latitude.getValue()) || 0, // Convertir a número y manejar valores no válidos
+        date_time:
+          datetime.getValue() !== ""
+            ? new Date(datetime.getValue())
+            : undefined, // Asignar undefined si el campo está vacío
+        longitude: Number(longitude.getValue()) || 0, // Convertir a número y manejar valores no válidos
+        altitude_units: altitudeUnits.getValue(), // Recoger el valor tal cual
+        china_coordinate_id: chinaId.getValue()
+          ? Number(chinaId.getValue())
+          : null, // Convertir a número o asignar null si está vacío
+      };
+
+      // Actualizar la búsqueda en la tabla
+      this.table.lastSearch.criteria = criteria;
+      this.refreshTable();
+      this.searchModal.show(false); // Cerrar el modal después de actualizar la tabla
     });
   }
 }

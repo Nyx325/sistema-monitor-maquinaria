@@ -13,7 +13,7 @@ export interface IRepository<M, NM, I> {
   /**
    * Agrega un nuevo modelo al repositorio.
    * @param model - El modelo a agregar.
-   * @returns {Promise<void>} - Promesa que se resuelve cuando la operación de adición se completa.
+   * @returns {Promise<M>} - Promesa que devuelve el dato creado.
    */
   add(model: NM): Promise<M>;
 
