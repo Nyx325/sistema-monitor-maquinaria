@@ -542,38 +542,40 @@ export class ReportController {
         efficiency_ratio_percentage: number;
       }[]
     >`
-  SELECT 
-      e.serial_number,
-      (MAX(cpt.payload) - MIN(cpt.payload)) AS total_payload_used,
-      (MAX(fu.fuel_consumed) - MIN(fu.fuel_consumed)) AS total_fuel_used,
-      CASE 
-          WHEN (MAX(fu.fuel_consumed) - MIN(fu.fuel_consumed)) > 0 THEN 
-              (MAX(cpt.payload) - MIN(cpt.payload)) / (MAX(fu.fuel_consumed) - MIN(fu.fuel_consumed))
-          ELSE 
-              NULL
-      END AS efficiency_ratio_value,
-      CASE 
-          WHEN (MAX(fu.fuel_consumed) - MIN(fu.fuel_consumed)) > 0 THEN 
-              ((MAX(cpt.payload) - MIN(cpt.payload)) / (MAX(fu.fuel_consumed) - MIN(fu.fuel_consumed))) * 100
-          ELSE 
-              NULL
-      END AS efficiency_ratio_percentage
-  FROM 
-      Equipement e
-  LEFT JOIN 
-      ApiSnapshot s ON e.serial_number = s.serial_number
-  LEFT JOIN 
-      CumulativePayloadTotals cpt ON s.snapshot_id = cpt.snapshot_id
-  LEFT JOIN 
-      FuelUsed fu ON s.snapshot_id = fu.snapshot_id
-  WHERE 
-      s.snapshot_datetime BETWEEN ${startDate} AND ${endDate}
-      AND e.serial_number LIKE ${`%${serialNumber}%`}
-      AND e.active = 1
-      AND (cpt.active = 1 OR cpt.active IS NULL)
-      AND (fu.active = 1 OR fu.active IS NULL)
-  GROUP BY 
-      e.serial_number, e.oem_name, e.model;
+SELECT 
+    e.serial_number,
+    (MAX(cpt.payload) - MIN(cpt.payload)) AS total_payload_used,
+    (MAX(fu.fuel_consumed) - MIN(fu.fuel_consumed)) AS total_fuel_used,
+    CASE 
+        WHEN (MAX(fu.fuel_consumed) - MIN(fu.fuel_consumed)) > 0 THEN 
+            -- Calcular el ratio de eficiencia solo si el combustible consumido es mayor que 0
+            (MAX(cpt.payload) - MIN(cpt.payload)) / (MAX(fu.fuel_consumed) - MIN(fu.fuel_consumed))
+        ELSE 
+            NULL
+    END AS efficiency_ratio_value,
+    CASE 
+        WHEN (MAX(fu.fuel_consumed) - MIN(fu.fuel_consumed)) > 0 THEN 
+            -- Calcular el ratio de eficiencia en porcentaje solo si el combustible consumido es mayor que 0
+            ((MAX(cpt.payload) - MIN(cpt.payload)) / (MAX(fu.fuel_consumed) - MIN(fu.fuel_consumed))) * 100
+        ELSE 
+            NULL
+    END AS efficiency_ratio_percentage
+FROM 
+    Equipement e
+LEFT JOIN 
+    ApiSnapshot s ON e.serial_number = s.serial_number
+LEFT JOIN 
+    CumulativePayloadTotals cpt ON s.snapshot_id = cpt.snapshot_id
+LEFT JOIN 
+    FuelUsed fu ON s.snapshot_id = fu.snapshot_id
+WHERE 
+    s.snapshot_datetime BETWEEN ${startDate} AND ${endDate}
+    AND e.serial_number LIKE ${`%${serialNumber}%`}
+    AND e.active = 1
+    AND (cpt.active = 1 OR cpt.active IS NULL)
+    AND (fu.active = 1 OR fu.active IS NULL)
+GROUP BY 
+    e.serial_number, e.oem_name, e.model;
 `;
 
     // Convertir los valores BigInt a String antes de enviarlos

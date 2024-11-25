@@ -84,12 +84,13 @@ class Report5View implements TableView {
     ]);
 
     this.table.onParseData((record) => {
+      console.log(record);
       return [
         record.serial_number,
         `${record.total_payload_used ?? "no hay registros en estas fechas"}`,
         `${record.total_fuel_used ?? "no hay registros en estas fechas"}`,
-        `${parseFloat((record.efficiency_ratio_value ?? 0).toFixed(4))}`,
-        `${parseFloat((record.efficiency_ratio_percentage ?? 0).toFixed(4))}`,
+        `${(parseFloat(record.efficiency_ratio_value.toString()) || 0).toFixed(4)}`,
+        `${(parseFloat(record.efficiency_ratio_percentage.toString()) || 0).toFixed(4)}`,
       ];
     });
 
