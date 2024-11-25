@@ -1,7 +1,28 @@
 import { LocationWithSnapshot } from "../../model/entities/ModelsWithSnapshot.js";
+import Activity from "../components/activity.js";
+import LabeledInput from "../components/labeledInput.js";
+import Modal from "../components/modal.js";
 import { View } from "./view.js";
 
 class LocationView extends View<LocationWithSnapshot> {
+  protected searchModal: Modal;
+  protected searchBtn: HTMLButtonElement;
+  protected activitySearch: Activity;
+
+  protected search: {
+    acept: HTMLButtonElement;
+    cancel: HTMLButtonElement;
+  };
+
+  protected searchInput: {
+    longitude: LabeledInput;
+    latitude: LabeledInput;
+    altitude: LabeledInput;
+    altitudeUnits: LabeledInput;
+    chinaId: LabeledInput;
+    datetime: LabeledInput;
+  };
+
   constructor() {
     super({
       alert: "location-alert",
@@ -79,11 +100,63 @@ class LocationView extends View<LocationWithSnapshot> {
         },
       ],
     });
+
+    this.searchBtn = document.getElementById(
+      "search-location",
+    ) as HTMLButtonElement;
+    console.log("A");
+    this.searchBtn.innerHTML = "A";
+    console.log("B");
+    this.searchModal = new Modal("search-modal");
+    this.searchInput = {
+      datetime: new LabeledInput({
+        inputId: "datetime-inputs",
+        labelId: "datetime-labels",
+        containerId: "datetimes",
+      }),
+      chinaId: new LabeledInput({
+        containerId: "china-ids",
+        inputId: "china-id-inputs",
+        labelId: "china-id-labels",
+      }),
+      altitude: new LabeledInput({
+        labelId: "altitude-labels",
+        inputId: "altitude-inputs",
+        containerId: "altitudes",
+      }),
+      latitude: new LabeledInput({
+        containerId: "latitudes",
+        inputId: "latitude-inputs",
+        labelId: "latitude-labels",
+      }),
+      longitude: new LabeledInput({
+        containerId: "longitudes",
+        labelId: "longitude-labels",
+        inputId: "longitude-inputs",
+      }),
+      altitudeUnits: new LabeledInput({
+        containerId: "altitude-unitss",
+        inputId: "altitude-inputs",
+        labelId: "altitude-labels",
+      }),
+    };
+
+    this.activitySearch = new Activity({
+      container: document.getElementById("activity-sections") as HTMLElement,
+      trueI: document.getElementById("active-trues") as HTMLInputElement,
+      falseI: document.getElementById("active-falses") as HTMLInputElement,
+    });
+
+    this.search = {
+      acept: document.getElementById("acept-btns") as HTMLButtonElement,
+      cancel: document.getElementById("cancel-btns") as HTMLButtonElement,
+    };
   }
 
   protected initialize(): void {
     super.initialize();
     this.initTable().then();
+    this.initSearchModal();
     this.pager.render();
   }
 
@@ -205,6 +278,12 @@ class LocationView extends View<LocationWithSnapshot> {
 
   protected getRecordId(record: LocationWithSnapshot): unknown {
     return record.location_id;
+  }
+
+  protected initSearchModal() {
+    this.searchBtn.addEventListener("click", () => {
+      this.searchModal.show(true);
+    });
   }
 }
 
