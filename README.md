@@ -49,6 +49,7 @@ npm run dev
 Se debe haber configurado el directorio de backups como
 `./backups` y acceder con un usuario de tipo administrador
 
+## Usuarios del sistema
 ```sql
 INSERT INTO User (full_name, user_name, user_password, user_type, active, email)
 VALUES (
